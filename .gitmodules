@@ -1,0 +1,3 @@
+[submodule "external/miniz"]
+	path = external/miniz
+	url = github:richgel999/miniz
