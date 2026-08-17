@@ -2,13 +2,9 @@
   description = "Screen Translator 4 — Qt 6 screen capture, OCR, and translation";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs-unstable/8e2eeb9477c9d40009a5bd51cd3eef2f5abb26f1";
-    systems.url = "github:nix-systems/default";
-
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-      inputs.systems.follows = "systems";
-    };
+    system-flake.url = "path:/home/kein/nixos-configuration";
+    nixpkgs.follows = "system-flake/nixpkgs";
+    flake-utils.follows = "system-flake/flake-utils";
 
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
@@ -32,6 +28,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
         screen-translator-pkg = self.packages.${system}.screen-translator;
+        screen-translator-legacy-pkg = screen-translator-pkg.override { buildLegacy = true; };
 
         treefmtEval = (treefmt-nix.lib.evalModule pkgs ./treefmt.nix).config.build;
       in
@@ -59,7 +56,7 @@
         devShells = rec {
           default = build-env;
           build-env = pkgs.mkShell {
-            inputsFrom = [ screen-translator-pkg ];
+            inputsFrom = [ screen-translator-legacy-pkg ];
             packages = [
               pkgs.clang-tools
               pkgs.qt6.qttools

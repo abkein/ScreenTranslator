@@ -92,8 +92,8 @@ cmake --install build --prefix /usr/local
 ```
 
 To compile the dormant version 3 application and run its regression tests,
-also install Qt Core5Compat, Qt WebEngineWidgets, Hunspell, and initialize the
-`external/miniz` submodule, then configure with:
+also install Qt Core5Compat, Qt WebEngineWidgets, Hunspell, miniz 3.1 or newer,
+and GoogleTest, then configure with:
 
 ```sh
 cmake -S . -B build-legacy -G Ninja \
@@ -120,10 +120,12 @@ nix develop
 The default Nix package includes English Tesseract data. The standalone
 [`package.nix`](package.nix) expression accepts `tesseractLanguages`, so Nix
 consumers can select additional models without bundling them into the
-application itself:
+application itself. Set `buildLegacy = true` in the same call to compile and
+test the compatibility target with packaged GoogleTest and miniz:
 
 ```nix
 pkgs.callPackage ./package.nix {
+  buildLegacy = true;
   tesseractLanguages = [ "eng" "deu" "rus" ];
 }
 ```

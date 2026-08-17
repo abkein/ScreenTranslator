@@ -3,6 +3,8 @@
   stdenv,
   cmake,
   curl,
+  gtest,
+  hunspell,
   ninja,
   pkg-config,
   qt6,
@@ -10,6 +12,8 @@
   leptonica,
   libarchive,
   libX11,
+  miniz,
+  buildLegacy ? false,
   tesseractLanguages ? [ "eng" ],
 }:
 
@@ -53,11 +57,17 @@ stdenv.mkDerivation (finalAttrs: {
     qt6.qtwebchannel
     qt6.qtwebengine
     tesseract
+  ]
+  ++ lib.optionals buildLegacy [
+    gtest
+    hunspell
+    miniz
+    qt6.qt5compat
   ];
 
   cmakeFlags = [
     (lib.cmakeBool "BUILD_TESTING" true)
-    (lib.cmakeBool "SCREEN_TRANSLATOR_BUILD_LEGACY" false)
+    (lib.cmakeBool "SCREEN_TRANSLATOR_BUILD_LEGACY" buildLegacy)
   ];
 
   doCheck = true;
@@ -80,7 +90,9 @@ stdenv.mkDerivation (finalAttrs: {
     runHook postInstallCheck
   '';
 
-  passthru = { inherit tesseract tesseractLanguages; };
+  passthru = {
+    inherit buildLegacy tesseract tesseractLanguages;
+  };
 
   meta = {
     description = "Capture, recognize, and translate text on screen";

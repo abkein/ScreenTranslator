@@ -158,13 +158,8 @@ endif()
 
 if(SCREEN_TRANSLATOR_BUILD_LEGACY)
   find_package(Qt6 6.8 REQUIRED COMPONENTS Core5Compat WebEngineWidgets)
+  find_package(miniz 3.1 CONFIG REQUIRED)
   pkg_check_modules(Hunspell REQUIRED IMPORTED_TARGET hunspell)
-
-  set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-  set(BUILD_FUZZERS OFF CACHE BOOL "" FORCE)
-  set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
-  set(INSTALL_PROJECT OFF CACHE BOOL "" FORCE)
-  add_subdirectory(external/miniz EXCLUDE_FROM_ALL)
 
   set(SCREEN_TRANSLATOR_LEGACY_SOURCES
     resources.qrc
@@ -244,7 +239,6 @@ if(SCREEN_TRANSLATOR_BUILD_LEGACY)
     VERSION="${PROJECT_VERSION}"
   )
   target_include_directories(screen-translator-legacy PRIVATE
-    external
     src
     src/capture
     src/correct
@@ -264,7 +258,7 @@ if(SCREEN_TRANSLATOR_BUILD_LEGACY)
     Qt6::WebChannel
     Qt6::WebEngineWidgets
     Qt6::Widgets
-    miniz
+    miniz::miniz
   )
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(screen-translator-legacy PRIVATE X11::X11)
@@ -275,8 +269,8 @@ if(SCREEN_TRANSLATOR_BUILD_LEGACY)
   endif()
 
   if(BUILD_TESTING)
+    find_package(GTest REQUIRED)
     add_executable(screen-translator-legacy-tests
-      external/gtest/gtest-all.cc
       src/service/debug.cpp
       src/service/debug.h
       src/service/geometryutils.cpp
@@ -288,15 +282,15 @@ if(SCREEN_TRANSLATOR_BUILD_LEGACY)
       tests/updates_test.cpp
     )
     target_include_directories(screen-translator-legacy-tests PRIVATE
-      external
       src/service
     )
     target_link_libraries(screen-translator-legacy-tests PRIVATE
+      GTest::gtest
       Qt6::Core
       Qt6::Network
       Qt6::Test
       Qt6::Widgets
-      miniz
+      miniz::miniz
     )
     add_test(NAME screen-translator-legacy-tests
              COMMAND screen-translator-legacy-tests)
