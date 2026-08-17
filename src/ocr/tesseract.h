@@ -3,6 +3,7 @@
 #include "stfwd.h"
 
 #include <QString>
+#include <QImage>
 
 #include <memory>
 
@@ -20,6 +21,7 @@ public:
   ~Tesseract();
 
   QString recognize(const QPixmap& source);
+  QString recognize(const QImage& source);
   bool isValid() const;
   const QString& error() const;
 

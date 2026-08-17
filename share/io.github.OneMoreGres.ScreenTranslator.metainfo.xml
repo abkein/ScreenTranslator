@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.OneMoreGres.ScreenTranslator</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Screen Translator</name>
+  <summary>Capture, recognize, and translate text on screen</summary>
+  <developer id="io.github.onemoregres">
+    <name>OneMoreGres</name>
+  </developer>
+  <description>
+    <p>
+      Screen Translator captures a rectangular screen area, recognizes its text
+      with Tesseract, and optionally translates it through ordered JavaScript
+      providers. It runs from the system tray and presents results in a compact
+      floating card.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.OneMoreGres.ScreenTranslator.desktop</launchable>
+  <url type="homepage">https://github.com/OneMoreGres/ScreenTranslator</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="4.0.0" date="2026-08-18">
+      <description>
+        <p>Qt 6 rewrite with X11 and Wayland capture support.</p>
+      </description>
+    </release>
+  </releases>
+</component>

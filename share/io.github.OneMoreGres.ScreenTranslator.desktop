@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Screen Translator
+GenericName=Screen Translator
+Comment=Capture, recognize, and translate text on screen
+Exec=screen-translator
+Icon=screentranslator
+Terminal=false
+Categories=Utility;Qt;
+StartupNotify=false

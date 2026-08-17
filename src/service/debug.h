@@ -2,6 +2,8 @@
 
 #include <QDebug>
 
+#include <atomic>
+
 namespace debug
 {
 extern std::atomic_bool isTrace;

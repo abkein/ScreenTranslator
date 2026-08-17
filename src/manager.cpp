@@ -17,6 +17,7 @@
 #include <QMessageBox>
 #include <QNetworkProxy>
 #include <QThread>
+#include <QStandardPaths>
 
 namespace
 {

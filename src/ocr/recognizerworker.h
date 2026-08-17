@@ -10,6 +10,7 @@ class RecognizeWorker : public QObject
 {
   Q_OBJECT
 public:
+  RecognizeWorker();
   ~RecognizeWorker();
 
   void handle(const TaskPtr &task);

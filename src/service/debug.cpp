@@ -37,10 +37,14 @@ void handler(QtMsgType type, const QMessageLogContext &context,
       QByteArray::number(context.line) + typeName + msg.toUtf8() + '\n';
 
   QMutexLocker locker(&mutex);
-  if (logFile)
-    write(fileno(logFile), message.data(), message.size());
-  if (realStderr > 0)
-    write(realStderr, message.data(), message.size());
+  if (logFile) {
+    const auto written = write(fileno(logFile), message.data(), message.size());
+    Q_UNUSED(written);
+  }
+  if (realStderr > 0) {
+    const auto written = write(realStderr, message.data(), message.size());
+    Q_UNUSED(written);
+  }
 }
 
 void toDefaults()

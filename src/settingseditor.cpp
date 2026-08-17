@@ -10,6 +10,8 @@
 
 #include <QColorDialog>
 #include <QStandardItemModel>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
 
 namespace
 {
@@ -112,10 +114,10 @@ SettingsEditor::SettingsEditor(Manager &manager, update::Updater &updater)
     proxyTypes.insert(ProxyType::Http, tr("HTTP"));
     ui->proxyTypeCombo->addItems(proxyTypes.values());
 
-    QRegExp urlRegexp(
+    QRegularExpression urlRegexp(
         R"(^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$)");
     ui->proxyHostEdit->setValidator(
-        new QRegExpValidator(urlRegexp, ui->proxyHostEdit));
+        new QRegularExpressionValidator(urlRegexp, ui->proxyHostEdit));
 
     ui->proxyPassEdit->setEchoMode(QLineEdit::PasswordEchoOnEdit);
   }

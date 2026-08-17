@@ -1,100 +1,120 @@
 # Screen Translator
 
-**The project is almost abandoned. I don't have time for it and I can only fix minor issues**
+Screen Translator 4 is a tray-first Linux application for capturing text from
+the screen, recognizing it with Tesseract, and optionally translating it with
+JavaScript providers. Version 4 is a focused Qt 6 rewrite with a single fresh
+area capture and a compact floating result card.
 
-## Introduction
+## Features
 
-This software allows you to translate any text on screen.
-Basically it is a combination of screen capture, OCR and translation tools.
-Translation is currently done via online services.
+- Qt 6.8 LTS baseline and CMake-only build
+- Native single-screen area selection on X11
+- Screenshot portal area picker on Wayland
+- Tesseract OCR using language data installed on the system
+- Ordered fallback across bundled or user-provided translation scripts
+- Floating result card with recognized text, translation, copy, retry, and
+  close actions
+- Native X11 global shortcut and the Global Shortcuts portal on Wayland
+
+The version 3 interface and its advanced capture/correction/update features are
+not part of the version 4 runtime. They remain available as a compile-tested,
+opt-in legacy target while the new product stabilizes.
 
 ## Installation
 
-**Windows**: download archive from [github releases](https://github.com/OneMoreGres/ScreenTranslator/releases) page, extract it and run `.exe` file.
+Linux x86-64 AppImages are produced by GitHub Actions. Download an AppImage
+from the Releases page, make it executable, and run it:
 
-If the app fails to start complaining about missing dlls or there are any update errors related to SSL/TLS then install or repair `vs_redist*.exe` from the release archive.
+```sh
+chmod +x ScreenTranslator-*.AppImage
+./ScreenTranslator-*.AppImage
+```
 
-**Linux**: download `.AppImage` file from [github releases](https://github.com/OneMoreGres/ScreenTranslator/releases), make executable (`chmod +x <file>`) and run it.
+Install at least one Tesseract language package through your distribution. For
+example, Debian and Ubuntu package English as `tesseract-ocr-eng`. The AppImage
+uses system language data intentionally; it does not download or bundle OCR
+models.
 
-**OS X**: currently not supported.
+Windows and macOS releases are not currently produced or validated.
 
-## Setup
+## First launch
 
-The app doesn't have a main window.
-After start it shows only the tray icon.
+The application opens a required setup dialog on first launch. Choose:
 
-If the app detects invalid settings, it will show the error message via system tray.
-It will also highlight the section name in red on the left panel of the settings window.
-Clicking on that section name will show a more detailed error message in the right panel (also in red).
+1. a Tesseract language-data directory, or leave the field empty for automatic
+   discovery;
+2. an installed OCR source language;
+3. whether to translate the result;
+4. a target language and one or more translation providers when translation is
+   enabled.
 
-The packages downloaded from this site do not include resources, such as recognition language packs or scripts to interact with online translation services.
+On X11, the shortcut is registered directly. On Wayland, the desktop portal
+owns the shortcut and may show its own permission or assignment dialog. Portal
+behavior depends on the desktop environment; capture and settings always remain
+available from the tray menu.
 
-To download them, open the settings window and go to the `Update` section.
-In the right panel, expand the `recognizers` and `translators` sections.
-Select preferred items, then right click and choose `Install/Update`.
-After the progress bar reaches `100%`, the resource's state will change to `Up to Date`.
+Settings are deliberately fresh for version 4 and are not imported from older
+Screen Translator releases.
 
-You must download at least one `recognizers` resource and one `translators` resource.
+## Translation providers
 
-After finishing downloads, go to the `Recognition` section and update the default recognition language setting (the source to be translated).
-Then go to the `Translation` section, update the default translation language setting (the language to be translated into) and enable some or all translation sevices (you may also change their order by dragging).
+The existing Baidu, Bing, DeepL, Google, Google API, Papago, and Yandex scripts
+are bundled. These scripts automate third-party websites and can stop working
+when those sites change. Providers are tried in the order shown in Settings.
 
-After that all sections in the left panel should be black.
-Then click `Ok` to close settings.
+The Settings dialog can open the per-user provider directory. A user script
+must have a unique `.js` filename; user scripts cannot replace a bundled name.
+It must expose an `init()` function, connect to `proxy.translate`, and finish by
+calling either `proxy.setTranslated(text)` or `proxy.setFailed(error)`.
 
-### Third party enhancements
+## Building from source
 
-**Not tested or reviewed by me**
+Required development dependencies:
 
-* to translate with online AI services use scripts from [here](https://github.com/Suki8898/Translator)
+- CMake 3.21 or newer and a C++17 compiler
+- Qt 6.8 or newer with Core, Concurrent, DBus, Gui, Network, WebChannel,
+  WebEngineCore, Widgets, and Test
+- Tesseract 5.2 or newer and Leptonica 1.82 or newer
+- X11 development libraries on Linux
 
-* to install Hebrew translation of the app itself (thanks to [Y-PLONI](https://github.com/Y-PLONI)),
-download [this](https://github.com/OneMoreGres/ScreenTranslator/releases/download/3.3.0/screentranslator_he.qm)
-file and place it into the `translations` folder next to `screen-translator.exe`.
+Configure, build, and test the version 4 application:
 
-## Usage
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
 
-1. Run program (note that it doesn't have main window).
-2. Press capture hotkey.
-3. Select region on screen. Customize it if needed.
-4. Get translation of recognized text.
-5. Check for updates if something is not working.
+Install with the usual CMake mechanism:
 
-## FAQ
+```sh
+cmake --install build --prefix /usr/local
+```
 
-By default resources are downloaded to the one of the user's folders.
-If `Portable` setting in `General` section is checked, then resources will be downloaded to the app's folder.
+To compile the dormant version 3 application and run its regression tests,
+also install Qt Core5Compat, Qt WebEngineWidgets, Hunspell, and initialize the
+`external/miniz` submodule, then configure with:
 
-Set `QTWEBENGINE_DISABLE_SANDBOX=1` environment variable when fail to start due to crash.
+```sh
+cmake -S . -B build-legacy -G Ninja \
+  -DSCREEN_TRANSLATOR_BUILD_LEGACY=ON
+cmake --build build-legacy
+ctest --test-dir build-legacy --output-on-failure
+```
 
-Answers to some frequently asked questions can be found in issues or
-[wiki](https://github.com/OneMoreGres/ScreenTranslator/wiki/FAQ)
+The resulting compatibility executable is `screen-translator-legacy`; it is a
+development target and is not installed or released.
 
-## Limitations
+## Current limitations
 
-* Can not capture some dynamic web-pages/full screen applications
+- Capture is one fresh rectangular region at a time.
+- Wayland requires working Screenshot and Global Shortcuts portals for the full
+  experience.
+- The redesigned interface is English-only.
+- Translation providers need network access and are not guaranteed by their
+  respective services.
 
-## Dependencies
+## License and attribution
 
-* see [Qt 5](https://qt-project.org/)
-* see [Tesseract](https://github.com/tesseract-ocr/tesseract/)
-* see [Leptonica](https://leptonica.com/)
-* several online translation services
-
-## Build from source
-
-Look at the scripts (python3) in the `share/ci` folder.
-Normally, you should only edit the `config.py` file.
-
-Build dependencies at first, then build the app.
-
-## Attributions
-
-* icons made by
-[Smashicons](https://www.flaticon.com/authors/smashicons),
-[Freepik](https://www.flaticon.com/authors/freepik),
-from [Flaticon](https://www.flaticon.com/)
-
-## Alternative solutions
-
-* [Translumo](https://github.com/ramjke/Translumo) - Advanced real-time screen translator for games, hardcoded subtitles in videos, static text and etc.
+Screen Translator is distributed under the MIT License. See [LICENSE.md](LICENSE.md).
+The application icons include work by Smashicons and Freepik from Flaticon.

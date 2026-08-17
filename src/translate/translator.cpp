@@ -16,6 +16,7 @@
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QToolBar>
+#include <QTcpSocket>
 
 #include <unordered_set>
 

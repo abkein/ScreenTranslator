@@ -1,243 +1,104 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
-project(ScreenTranslator VERSION 3.3.0 LANGUAGES C CXX)
+project(ScreenTranslator VERSION 4.0.0 LANGUAGES C CXX)
 
 include(CTest)
 include(GNUInstallDirs)
+
+option(SCREEN_TRANSLATOR_BUILD_LEGACY
+       "Compile the dormant Qt 6 port of the version 3 application" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-if(DEFINED ENV{ST_DEPS_DIR} AND NOT "$ENV{ST_DEPS_DIR}" STREQUAL "")
-  set(_st_default_deps_dir "$ENV{ST_DEPS_DIR}")
-else()
-  set(_st_default_deps_dir "${CMAKE_CURRENT_SOURCE_DIR}/../deps")
-endif()
-set(ST_DEPS_DIR "${_st_default_deps_dir}" CACHE PATH
-    "Directory containing the Tesseract, Leptonica, and Hunspell dependencies")
-unset(_st_default_deps_dir)
-
-find_package(Qt5 5.12 REQUIRED COMPONENTS
+find_package(Qt6 6.8 REQUIRED COMPONENTS
+  Concurrent
   Core
+  DBus
   Gui
-  LinguistTools
   Network
   WebChannel
-  WebEngineWidgets
+  WebEngineCore
   Widgets
 )
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Tesseract REQUIRED IMPORTED_TARGET tesseract>=5.2)
+pkg_check_modules(Leptonica REQUIRED IMPORTED_TARGET lept>=1.82)
+pkg_get_variable(SCREEN_TRANSLATOR_TESSDATA_DIR tesseract tessdata)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  find_package(Qt5 5.12 REQUIRED COMPONENTS X11Extras)
   find_package(X11 REQUIRED)
 endif()
 
-# The project's CI installs these libraries into ST_DEPS_DIR.  Using find_path
-# and find_library also permits normal system installations and package-manager
-# toolchains to work without requiring a particular package-config format.
-find_path(TESSERACT_INCLUDE_DIR
-  NAMES tesseract/baseapi.h
-  HINTS "${ST_DEPS_DIR}"
-  PATH_SUFFIXES include
-  REQUIRED
-)
-find_library(TESSERACT_LIBRARY
-  NAMES tesseract libtesseract
-  HINTS "${ST_DEPS_DIR}"
-  PATH_SUFFIXES lib lib64
-  REQUIRED
-)
-find_path(LEPTONICA_INCLUDE_DIR
-  NAMES leptonica/allheaders.h
-  HINTS "${ST_DEPS_DIR}"
-  PATH_SUFFIXES include
-  REQUIRED
-)
-find_library(LEPTONICA_LIBRARY
-  NAMES leptonica lept libleptonica liblept
-  HINTS "${ST_DEPS_DIR}"
-  PATH_SUFFIXES lib lib64
-  REQUIRED
-)
-find_path(HUNSPELL_INCLUDE_DIR
-  NAMES hunspell/hunspell.hxx
-  HINTS "${ST_DEPS_DIR}"
-  PATH_SUFFIXES include
-  REQUIRED
-)
-find_library(HUNSPELL_LIBRARY
-  NAMES hunspell hunspell-1.7 hunspell-1.6 libhunspell
-  HINTS "${ST_DEPS_DIR}"
-  PATH_SUFFIXES lib lib64
-  REQUIRED
-)
-
-add_library(Tesseract::Tesseract UNKNOWN IMPORTED)
-set_target_properties(Tesseract::Tesseract PROPERTIES
-  IMPORTED_LOCATION "${TESSERACT_LIBRARY}"
-  INTERFACE_INCLUDE_DIRECTORIES "${TESSERACT_INCLUDE_DIR}"
-)
-add_library(Leptonica::Leptonica UNKNOWN IMPORTED)
-set_target_properties(Leptonica::Leptonica PROPERTIES
-  IMPORTED_LOCATION "${LEPTONICA_LIBRARY}"
-  INTERFACE_INCLUDE_DIRECTORIES "${LEPTONICA_INCLUDE_DIR}"
-)
-add_library(Hunspell::Hunspell UNKNOWN IMPORTED)
-set_target_properties(Hunspell::Hunspell PROPERTIES
-  IMPORTED_LOCATION "${HUNSPELL_LIBRARY}"
-  INTERFACE_INCLUDE_DIRECTORIES "${HUNSPELL_INCLUDE_DIR}"
-)
-
-set(SCREEN_TRANSLATOR_SOURCES
-  external/miniz/miniz.c
-  src/capture/capturearea.cpp
-  src/capture/capturearea.h
-  src/capture/captureareaeditor.cpp
-  src/capture/captureareaeditor.h
-  src/capture/captureareaselector.cpp
-  src/capture/captureareaselector.h
-  src/capture/capturer.cpp
-  src/capture/capturer.h
-  src/commonmodels.cpp
-  src/commonmodels.h
-  src/correct/corrector.cpp
-  src/correct/corrector.h
-  src/correct/correctorworker.cpp
-  src/correct/correctorworker.h
-  src/correct/hunspellcorrector.cpp
-  src/correct/hunspellcorrector.h
+set(SCREEN_TRANSLATOR_V4_SOURCES
+  resources.qrc
   src/languagecodes.cpp
   src/languagecodes.h
-  src/main.cpp
-  src/manager.cpp
-  src/manager.h
-  src/ocr/recognizer.cpp
-  src/ocr/recognizer.h
-  src/ocr/recognizerworker.cpp
-  src/ocr/recognizerworker.h
   src/ocr/tesseract.cpp
   src/ocr/tesseract.h
-  src/represent/representer.cpp
-  src/represent/representer.h
-  src/represent/resulteditor.cpp
-  src/represent/resulteditor.h
-  src/represent/resultwidget.cpp
-  src/represent/resultwidget.h
-  src/service/apptranslator.cpp
-  src/service/apptranslator.h
   src/service/debug.cpp
   src/service/debug.h
-  src/service/geometryutils.cpp
-  src/service/geometryutils.h
   src/service/globalaction.cpp
   src/service/globalaction.h
-  src/service/keysequenceedit.cpp
-  src/service/keysequenceedit.h
-  src/service/runatsystemstart.cpp
-  src/service/runatsystemstart.h
-  src/service/singleapplication.cpp
-  src/service/singleapplication.h
-  src/service/updates.cpp
-  src/service/updates.h
-  src/service/widgetstate.cpp
-  src/service/widgetstate.h
-  src/settings.cpp
-  src/settings.h
-  src/settingseditor.cpp
-  src/settingseditor.h
-  src/settingseditor.ui
-  src/settingsvalidator.cpp
-  src/settingsvalidator.h
   src/stfwd.h
-  src/substitutionstable.cpp
-  src/substitutionstable.h
   src/task.h
-  src/translate/translator.cpp
-  src/translate/translator.h
-  src/translate/webpage.cpp
-  src/translate/webpage.h
-  src/translate/webpageproxy.cpp
-  src/translate/webpageproxy.h
-  src/trayicon.cpp
-  src/trayicon.h
+  src/v4/appcontroller.cpp
+  src/v4/appcontroller.h
+  src/v4/appsettings.cpp
+  src/v4/appsettings.h
+  src/v4/capturebackend.cpp
+  src/v4/capturebackend.h
+  src/v4/main.cpp
+  src/v4/ocrservice.cpp
+  src/v4/ocrservice.h
+  src/v4/providerregistry.cpp
+  src/v4/providerregistry.h
+  src/v4/regionselector.cpp
+  src/v4/regionselector.h
+  src/v4/resultcard.cpp
+  src/v4/resultcard.h
+  src/v4/settingsdialog.cpp
+  src/v4/settingsdialog.h
+  src/v4/shortcutservice.cpp
+  src/v4/shortcutservice.h
+  src/v4/translationservice.cpp
+  src/v4/translationservice.h
 )
 
-set(SCREEN_TRANSLATOR_TRANSLATIONS
-  share/translations/screentranslator_ru.ts
-  share/translations/screentranslator_he.ts
+add_executable(screen-translator ${SCREEN_TRANSLATOR_V4_SOURCES})
+target_compile_definitions(screen-translator PRIVATE
+  SCREEN_TRANSLATOR_VERSION="${PROJECT_VERSION}"
 )
-qt5_add_translation(SCREEN_TRANSLATOR_QM_FILES
-  ${SCREEN_TRANSLATOR_TRANSLATIONS}
-)
-
-# The original qrc refers to generated .qm files in the source tree.  Generate
-# an equivalent qrc in the build tree so out-of-source builds stay clean.
-set(SCREEN_TRANSLATOR_QRC "${CMAKE_CURRENT_BINARY_DIR}/screen-translator.qrc")
-file(WRITE "${SCREEN_TRANSLATOR_QRC}" "<RCC>\n  <qresource prefix=\"/icons\">\n")
-foreach(_resource IN ITEMS
-    "app.png|share/images/STIconBlue.png"
-    "st_success.png|share/images/STIconGreen.png"
-    "st_busy.png|share/images/STIconOrange.png"
-    "st_error.png|share/images/STIconRed.png"
-    "loadImages.png|share/images/loadImages.png"
-    "loadImages@2x.png|share/images/loadImages@2x.png"
-    "debug.png|share/images/debug.png"
-    "debug@2x.png|share/images/debug@2x.png")
-  string(REPLACE "|" ";" _resource_parts "${_resource}")
-  list(GET _resource_parts 0 _resource_alias)
-  list(GET _resource_parts 1 _resource_path)
-  file(APPEND "${SCREEN_TRANSLATOR_QRC}"
-    "    <file alias=\"${_resource_alias}\">${CMAKE_CURRENT_SOURCE_DIR}/${_resource_path}</file>\n")
-endforeach()
-file(APPEND "${SCREEN_TRANSLATOR_QRC}" "  </qresource>\n  <qresource prefix=\"/translations\">\n")
-foreach(_qm_file IN LISTS SCREEN_TRANSLATOR_QM_FILES)
-  get_filename_component(_qm_name "${_qm_file}" NAME)
-  file(APPEND "${SCREEN_TRANSLATOR_QRC}"
-    "    <file alias=\"${_qm_name}\">${_qm_file}</file>\n")
-endforeach()
-file(APPEND "${SCREEN_TRANSLATOR_QRC}" "  </qresource>\n</RCC>\n")
-qt5_add_resources(SCREEN_TRANSLATOR_RESOURCES "${SCREEN_TRANSLATOR_QRC}")
-
-if(WIN32)
-  file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/share/images/icon.ico" _st_icon)
-  set(SCREEN_TRANSLATOR_RC "${CMAKE_CURRENT_BINARY_DIR}/screen-translator.rc")
-  file(WRITE "${SCREEN_TRANSLATOR_RC}" "IDI_ICON1 ICON \"${_st_icon}\"\n")
-  list(APPEND SCREEN_TRANSLATOR_SOURCES "${SCREEN_TRANSLATOR_RC}")
+if(SCREEN_TRANSLATOR_TESSDATA_DIR)
+  target_compile_definitions(screen-translator PRIVATE
+    ST_DEFAULT_TESSDATA_DIR="${SCREEN_TRANSLATOR_TESSDATA_DIR}"
+  )
 endif()
-
-add_executable(screen-translator
-  ${SCREEN_TRANSLATOR_SOURCES}
-  ${SCREEN_TRANSLATOR_QM_FILES}
-  ${SCREEN_TRANSLATOR_RESOURCES}
-)
-target_compile_definitions(screen-translator PRIVATE VERSION="${PROJECT_VERSION}")
 target_include_directories(screen-translator PRIVATE
-  external
   src
-  src/capture
-  src/correct
   src/ocr
-  src/represent
   src/service
-  src/translate
+  src/v4
 )
 target_link_libraries(screen-translator PRIVATE
-  Hunspell::Hunspell
-  Leptonica::Leptonica
-  Tesseract::Tesseract
-  Qt5::Core
-  Qt5::Gui
-  Qt5::Network
-  Qt5::WebChannel
-  Qt5::WebEngineWidgets
-  Qt5::Widgets
+  PkgConfig::Leptonica
+  PkgConfig::Tesseract
+  Qt6::Concurrent
+  Qt6::Core
+  Qt6::DBus
+  Qt6::Gui
+  Qt6::Network
+  Qt6::WebChannel
+  Qt6::WebEngineCore
+  Qt6::Widgets
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  target_link_libraries(screen-translator PRIVATE Qt5::X11Extras X11::X11)
+  target_link_libraries(screen-translator PRIVATE X11::X11)
 elseif(WIN32)
   target_link_libraries(screen-translator PRIVATE user32)
 elseif(APPLE)
@@ -249,38 +110,195 @@ install(TARGETS screen-translator
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  install(FILES share/screentranslator.desktop
+  install(FILES share/io.github.OneMoreGres.ScreenTranslator.desktop
     DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
+  install(FILES share/io.github.OneMoreGres.ScreenTranslator.metainfo.xml
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/metainfo")
   install(FILES share/images/screentranslator.png
     DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/128x128/apps")
 endif()
 
 if(BUILD_TESTING)
-  find_package(Qt5 5.12 REQUIRED COMPONENTS Test)
-
+  find_package(Qt6 6.8 REQUIRED COMPONENTS Test)
   add_executable(screen-translator-tests
-    external/gtest/gtest-all.cc
-    external/miniz/miniz.c
+    resources.qrc
+    src/languagecodes.cpp
+    src/languagecodes.h
+    src/ocr/tesseract.cpp
+    src/ocr/tesseract.h
+    src/service/debug.cpp
+    src/service/debug.h
+    src/stfwd.h
+    src/task.h
+    src/v4/appsettings.cpp
+    src/v4/appsettings.h
+    src/v4/ocrservice.cpp
+    src/v4/ocrservice.h
+    src/v4/providerregistry.cpp
+    src/v4/providerregistry.h
+    tests/v4_test.cpp
+  )
+  target_include_directories(screen-translator-tests PRIVATE
+    src
+    src/ocr
+    src/service
+    src/v4
+  )
+  target_link_libraries(screen-translator-tests PRIVATE
+    PkgConfig::Leptonica
+    PkgConfig::Tesseract
+    Qt6::Concurrent
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Test
+    Qt6::Widgets
+  )
+  add_test(NAME screen-translator-tests COMMAND screen-translator-tests)
+endif()
+
+if(SCREEN_TRANSLATOR_BUILD_LEGACY)
+  find_package(Qt6 6.8 REQUIRED COMPONENTS Core5Compat WebEngineWidgets)
+  pkg_check_modules(Hunspell REQUIRED IMPORTED_TARGET hunspell)
+
+  set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+  set(BUILD_FUZZERS OFF CACHE BOOL "" FORCE)
+  set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  set(INSTALL_PROJECT OFF CACHE BOOL "" FORCE)
+  add_subdirectory(external/miniz EXCLUDE_FROM_ALL)
+
+  set(SCREEN_TRANSLATOR_LEGACY_SOURCES
+    resources.qrc
+    src/capture/capturearea.cpp
+    src/capture/capturearea.h
+    src/capture/captureareaeditor.cpp
+    src/capture/captureareaeditor.h
+    src/capture/captureareaselector.cpp
+    src/capture/captureareaselector.h
+    src/capture/capturer.cpp
+    src/capture/capturer.h
+    src/commonmodels.cpp
+    src/commonmodels.h
+    src/correct/corrector.cpp
+    src/correct/corrector.h
+    src/correct/correctorworker.cpp
+    src/correct/correctorworker.h
+    src/correct/hunspellcorrector.cpp
+    src/correct/hunspellcorrector.h
+    src/languagecodes.cpp
+    src/languagecodes.h
+    src/main.cpp
+    src/manager.cpp
+    src/manager.h
+    src/ocr/recognizer.cpp
+    src/ocr/recognizer.h
+    src/ocr/recognizerworker.cpp
+    src/ocr/recognizerworker.h
+    src/ocr/tesseract.cpp
+    src/ocr/tesseract.h
+    src/represent/representer.cpp
+    src/represent/representer.h
+    src/represent/resulteditor.cpp
+    src/represent/resulteditor.h
+    src/represent/resultwidget.cpp
+    src/represent/resultwidget.h
+    src/service/apptranslator.cpp
+    src/service/apptranslator.h
     src/service/debug.cpp
     src/service/debug.h
     src/service/geometryutils.cpp
     src/service/geometryutils.h
+    src/service/globalaction.cpp
+    src/service/globalaction.h
+    src/service/keysequenceedit.cpp
+    src/service/keysequenceedit.h
+    src/service/runatsystemstart.cpp
+    src/service/runatsystemstart.h
+    src/service/singleapplication.cpp
+    src/service/singleapplication.h
     src/service/updates.cpp
     src/service/updates.h
-    tests/geometryutils_test.cpp
-    tests/main.cpp
-    tests/updates_test.cpp
+    src/service/widgetstate.cpp
+    src/service/widgetstate.h
+    src/settings.cpp
+    src/settings.h
+    src/settingseditor.cpp
+    src/settingseditor.h
+    src/settingseditor.ui
+    src/settingsvalidator.cpp
+    src/settingsvalidator.h
+    src/stfwd.h
+    src/substitutionstable.cpp
+    src/substitutionstable.h
+    src/task.h
+    src/translate/translator.cpp
+    src/translate/translator.h
+    src/translate/webpage.cpp
+    src/translate/webpage.h
+    src/translate/webpageproxy.cpp
+    src/translate/webpageproxy.h
+    src/trayicon.cpp
+    src/trayicon.h
   )
-  target_include_directories(screen-translator-tests PRIVATE
+  add_executable(screen-translator-legacy ${SCREEN_TRANSLATOR_LEGACY_SOURCES})
+  target_compile_definitions(screen-translator-legacy PRIVATE
+    VERSION="${PROJECT_VERSION}"
+  )
+  target_include_directories(screen-translator-legacy PRIVATE
     external
+    src
+    src/capture
+    src/correct
+    src/ocr
+    src/represent
     src/service
+    src/translate
   )
-  target_link_libraries(screen-translator-tests PRIVATE
-    Qt5::Core
-    Qt5::Network
-    Qt5::Test
-    Qt5::Widgets
+  target_link_libraries(screen-translator-legacy PRIVATE
+    PkgConfig::Hunspell
+    PkgConfig::Leptonica
+    PkgConfig::Tesseract
+    Qt6::Core
+    Qt6::Core5Compat
+    Qt6::Gui
+    Qt6::Network
+    Qt6::WebChannel
+    Qt6::WebEngineWidgets
+    Qt6::Widgets
+    miniz
   )
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(screen-translator-legacy PRIVATE X11::X11)
+  elseif(WIN32)
+    target_link_libraries(screen-translator-legacy PRIVATE user32)
+  elseif(APPLE)
+    target_link_libraries(screen-translator-legacy PRIVATE "${CARBON_FRAMEWORK}")
+  endif()
 
-  add_test(NAME screen-translator-tests COMMAND screen-translator-tests)
+  if(BUILD_TESTING)
+    add_executable(screen-translator-legacy-tests
+      external/gtest/gtest-all.cc
+      src/service/debug.cpp
+      src/service/debug.h
+      src/service/geometryutils.cpp
+      src/service/geometryutils.h
+      src/service/updates.cpp
+      src/service/updates.h
+      tests/geometryutils_test.cpp
+      tests/main.cpp
+      tests/updates_test.cpp
+    )
+    target_include_directories(screen-translator-legacy-tests PRIVATE
+      external
+      src/service
+    )
+    target_link_libraries(screen-translator-legacy-tests PRIVATE
+      Qt6::Core
+      Qt6::Network
+      Qt6::Test
+      Qt6::Widgets
+      miniz
+    )
+    add_test(NAME screen-translator-legacy-tests
+             COMMAND screen-translator-legacy-tests)
+  endif()
 endif()

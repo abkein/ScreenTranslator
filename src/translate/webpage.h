@@ -34,7 +34,6 @@ protected:
   void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level,
                                 const QString &message, int lineNumber,
                                 const QString &sourceID) override;
-  bool certificateError(const QWebEngineCertificateError &error) override;
 
 private:
   void authenticateProxy(const QUrl &requestUrl, QAuthenticator *authenticator,

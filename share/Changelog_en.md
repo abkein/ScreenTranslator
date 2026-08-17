@@ -1,5 +1,19 @@
 # Changes
 
+## 4.0.0
+
+* Rebuilt the application around Qt 6.8 and CMake
+* Added Wayland capture and global-shortcut portal integration
+* Replaced the old multi-stage interface with one fresh area capture and a
+  floating result card
+* Switched OCR to system Tesseract language data with automatic discovery and
+  a manual override
+* Embedded the existing translation providers and added a user-provider
+  directory with ordered fallback
+* Added fresh first-run setup and settings storage
+* Retained the Qt 6 port of the version 3 code as an opt-in compile-only target
+* Limited validated release packaging to Linux x86-64 AppImage
+
 ## 3.3.0
 
 * Use single tesseract library (not optimized and compatible versions)

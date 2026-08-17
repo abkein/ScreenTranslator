@@ -1,100 +1,120 @@
-name: App build
+name: Linux build
 
-on: [push]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  QT_VERSION: 6.8.3
+  APPIMAGE_EXTRACT_AND_RUN: 1
 
 jobs:
+  build-test-package:
+    name: Qt 6 build, tests, and AppImage
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends \
+            build-essential cmake curl libfuse2t64 libhunspell-dev \
+            libleptonica-dev libtesseract-dev libx11-dev libxcb1-dev \
+            ninja-build pkg-config
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          arch: linux_gcc_64
+          modules: qt5compat qtdeclarative qtpositioning qtwayland qtwebchannel qtwebengine
+          cache: true
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DSCREEN_TRANSLATOR_BUILD_LEGACY=ON
+
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Install into AppDir
+        run: DESTDIR="$PWD/AppDir" cmake --install build
+
+      - name: Choose package name
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            package_version="$GITHUB_REF_NAME"
+          else
+            package_version="4.0.0-${GITHUB_SHA::7}"
+          fi
+          echo "PACKAGE_NAME=ScreenTranslator-${package_version}-x86_64.AppImage" >> "$GITHUB_ENV"
+
+      - name: Build AppImage
+        env:
+          EXTRA_PLATFORM_PLUGINS: libqwayland-egl.so;libqwayland-generic.so
+          OUTPUT: ${{ env.PACKAGE_NAME }}
+        run: |
+          curl --fail --location --retry 3 --output linuxdeploy \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          curl --fail --location --retry 3 --output linuxdeploy-plugin-qt \
+            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy linuxdeploy-plugin-qt
+          ./linuxdeploy --appdir AppDir --plugin qt --output appimage
+          test -f "$PACKAGE_NAME"
+
+      - name: Smoke-test AppImage
+        run: |
+          chmod +x "$PACKAGE_NAME"
+          QT_QPA_PLATFORM=offscreen "./$PACKAGE_NAME" --version
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v7
+        with:
+          name: ScreenTranslator-AppImage
+          path: ${{ env.PACKAGE_NAME }}
+          if-no-files-found: error
+          compression-level: 0
+
   release:
-    name: Create release
-    if: contains(github.ref, '/tags/')
-    runs-on: ubuntu-18.04
+    name: Publish tagged release
+    if: github.ref_type == 'tag'
+    needs: build-test-package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
     steps:
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Download AppImage
+        uses: actions/download-artifact@v8
+        with:
+          name: ScreenTranslator-AppImage
+          path: release
+
+      - name: Create or update release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Store release url
-        run: echo "${{ steps.create_release.outputs.upload_url }}" > ./release_upload_url
-
-      - name: Upload release url
-        uses: actions/upload-artifact@v1
-        with:
-          path: ./release_upload_url
-          name: release_upload_url
-
-  build:
-    name: Build ${{ matrix.config.name }}${{ matrix.config.tag }}
-    runs-on: ${{ matrix.config.os }}
-    env:
-      OS: ${{ matrix.config.name }}
-      MSVC_VERSION: C:/Program Files/Microsoft Visual Studio/2022/Enterprise
-    strategy:
-      matrix:
-        config:
-          - { name: "win64", os: windows-latest }
-          - { name: "win32", os: windows-latest }
-          - { name: "linux", os: ubuntu-18.04 }
-          # - { name: "macos", os: macos-latest }
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 10
-
-      - name: Setup python
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.x"
-
-      - name: Install system libs
-        if: runner.os == 'Linux'
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-*
-          echo "QMAKE_FLAGS=QMAKE_CXX=g++-10 QMAKE_CC=gcc-10 QMAKE_LINK=g++-10" >> $GITHUB_ENV
-
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: deps
-          key: ${{ env.OS }}-${{ hashFiles('./share/ci/*.py') }}
-
-      - name: Make a release
-        shell: bash
-        run: |
-          python ./share/ci/release.py
-          echo "artifact=`python ./share/ci/release.py artifact_name`" >> $GITHUB_ENV
-
-      - name: Upload build artifact
-        if: env.artifact != ''
-        uses: actions/upload-artifact@v1
-        with:
-          name: ${{ env.artifact }}
-          path: ./${{ env.artifact }}
-
-      - name: Download release url
-        if: contains(github.ref, '/tags/')
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: release_upload_url
-          path: ./
-
-      - name: Set release env
-        if: contains(github.ref, '/tags/')
-        shell: bash
-        run: echo "upload_url=`cat ./release_upload_url`" >> $GITHUB_ENV
-
-      - name: Upload release artifacts
-        if: contains(github.ref, '/tags/')
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ env.upload_url }}
-          asset_path: ./${{ env.artifact }}
-          asset_name: ${{ env.artifact }}
-          asset_content_type: application/zip
+          package=$(find release -maxdepth 1 -name '*.AppImage' -print -quit)
+          test -n "$package"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$package" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$package" \
+              --generate-notes --title "$GITHUB_REF_NAME"
+          fi

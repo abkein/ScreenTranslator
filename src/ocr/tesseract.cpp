@@ -74,9 +74,12 @@ static double getScale(Pix *source)
   if (preferredScale <= 1.0)
     return -1.0;
 
-  const auto maxScaleX = std::numeric_limits<int>::max() / double(source->w);
+  const auto width = pixGetWidth(source);
+  const auto height = pixGetHeight(source);
+  const auto depth = pixGetDepth(source);
+  const auto maxScaleX = std::numeric_limits<int>::max() / double(width);
   const auto scaleX = std::min(preferredScale, maxScaleX);
-  const auto maxScaleY = std::numeric_limits<int>::max() / double(source->h);
+  const auto maxScaleY = std::numeric_limits<int>::max() / double(height);
   const auto scaleY = std::min(preferredScale, maxScaleY);
   auto scale = std::min(scaleX, scaleY);
 
@@ -84,7 +87,7 @@ static double getScale(Pix *source)
   if (availableMemory < 1)
     return -1.0;
 
-  const auto actualSize = source->w * source->h * source->d / 8;
+  const auto actualSize = width * height * depth / 8;
   const auto maxScaleMemory = availableMemory / actualSize;
   scale = std::min(scale, maxScaleMemory);
 
@@ -170,13 +173,15 @@ static Pix *prepareImage(const QImage &image)
     // Get the average intensity of the border pixels,
     // with average of 0.0 being completely white and 1.0 being completely black
     // Top
-    auto avg = pixAverageOnLine(otsu, 0, 0, otsu->w - 1, 0, 1);
+    const auto width = pixGetWidth(otsu);
+    const auto height = pixGetHeight(otsu);
+    auto avg = pixAverageOnLine(otsu, 0, 0, width - 1, 0, 1);
     // Bottom
-    avg += pixAverageOnLine(otsu, 0, otsu->h - 1, otsu->w - 1, otsu->h - 1, 1);
+    avg += pixAverageOnLine(otsu, 0, height - 1, width - 1, height - 1, 1);
     // Left
-    avg += pixAverageOnLine(otsu, 0, 0, 0, otsu->h - 1, 1);
+    avg += pixAverageOnLine(otsu, 0, 0, 0, height - 1, 1);
     // Right
-    avg += pixAverageOnLine(otsu, otsu->w - 1, 0, otsu->w - 1, otsu->h - 1, 1);
+    avg += pixAverageOnLine(otsu, width - 1, 0, width - 1, height - 1, 1);
     avg /= 4.0f;
 
     // If background is dark
@@ -226,10 +231,10 @@ void Tesseract::init(const LanguageId &language, const QString &tessdataPath)
   auto result = api_->Init(qPrintable(tessdataPath), qPrintable(tesseractName),
                            tesseract::OcrEngineMode::OEM_DEFAULT);
   LTRACE() << "Inited Tesseract api" << result;
-  if (result == 0)
+  if (result == 0) {
+    api_->SetPageSegMode(tesseract::PageSegMode::PSM_AUTO);
     return;
-
-  api_->SetPageSegMode(tesseract::PageSegMode::PSM_AUTO);
+  }
 
   error_ = QObject::tr("init failed");
   api_.reset();
@@ -267,12 +272,17 @@ QStringList Tesseract::availableLanguageNames(const QString &path)
 
 QString Tesseract::recognize(const QPixmap &source)
 {
+  return recognize(source.toImage());
+}
+
+QString Tesseract::recognize(const QImage &source)
+{
   SOFT_ASSERT(api_, return {});
   SOFT_ASSERT(!source.isNull(), return {});
 
   error_.clear();
 
-  PixGuard image(prepareImage(source.toImage()));
+  PixGuard image(prepareImage(source));
   SOFT_ASSERT(image, return {});
   LTRACE() << "Preprocessed Pix for OCR" << image;
 
@@ -285,7 +295,7 @@ QString Tesseract::recognize(const QPixmap &source)
   api_->Clear();
   LTRACE() << "Cleared engine";
 
-  const auto result = QString(outText).trimmed();
+  const auto result = outText ? QString::fromUtf8(outText).trimmed() : QString();
 
   delete[] outText;
   LTRACE() << "Cleared recognized text buffer";

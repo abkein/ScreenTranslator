@@ -15,6 +15,7 @@
 #include <QTreeView>
 
 #include <random>
+#include <utility>
 
 #define MINIZ_NO_ZLIB_APIS
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
@@ -267,7 +268,7 @@ void Model::updateProgress(const QUrl &url, int progress)
         file.progress = progress;
         component.progress = progress;
 
-        for (const auto &f : qAsConst(component.files))
+        for (const auto &f : std::as_const(component.files))
           component.progress = std::max(f.progress, component.progress);
 
         const auto index = toIndex(component, int(Column::Progress));

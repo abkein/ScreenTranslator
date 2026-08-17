@@ -193,7 +193,7 @@ void CaptureAreaSelector::drawHelpRects(QPainter &painter,
   painter.setPen(Qt::NoPen);
   painter.drawRect(rect.current);
 
-  painter.setBrush({});
+  painter.setBrush(Qt::NoBrush);
   painter.setPen(Qt::black);
   painter.drawText(rect.current, Qt::AlignCenter, help_);
 }
@@ -213,7 +213,7 @@ void CaptureAreaSelector::drawCaptureArea(QPainter &painter,
   painter.setBrush(QBrush(QColor(200, 200, 200, 200)));
   painter.drawRect(toolTipRect);
 
-  painter.setBrush({});
+  painter.setBrush(Qt::NoBrush);
   painter.setPen(Qt::red);
   painter.drawRect(areaRect);
 

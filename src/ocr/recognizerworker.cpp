@@ -3,6 +3,7 @@
 #include "task.h"
 #include "tesseract.h"
 
+RecognizeWorker::RecognizeWorker() = default;
 RecognizeWorker::~RecognizeWorker() = default;
 
 void RecognizeWorker::handle(const TaskPtr &task)

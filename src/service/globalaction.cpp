@@ -17,13 +17,9 @@ bool GlobalAction::makeGlobal(QAction *action)
   QKeySequence hotKey = action->shortcut();
   if (hotKey.isEmpty())
     return true;
-  Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier |
-                                  Qt::AltModifier | Qt::MetaModifier;
-  Qt::Key key = hotKey.isEmpty() ? Qt::Key(0)
-                                 : Qt::Key((hotKey[0] ^ allMods) & hotKey[0]);
-  Qt::KeyboardModifiers mods = hotKey.isEmpty()
-                                   ? Qt::KeyboardModifiers(0)
-                                   : Qt::KeyboardModifiers(hotKey[0] & allMods);
+  const auto combination = hotKey[0];
+  const Qt::Key key = combination.key();
+  const Qt::KeyboardModifiers mods = combination.keyboardModifiers();
   const quint32 nativeKey = nativeKeycode(key);
   const quint32 nativeMods = nativeModifiers(mods);
   const bool res = registerHotKey(nativeKey, nativeMods);
@@ -39,13 +35,9 @@ bool GlobalAction::removeGlobal(QAction *action)
   QKeySequence hotKey = action->shortcut();
   if (hotKey.isEmpty())
     return true;
-  Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier |
-                                  Qt::AltModifier | Qt::MetaModifier;
-  Qt::Key key = hotKey.isEmpty() ? Qt::Key(0)
-                                 : Qt::Key((hotKey[0] ^ allMods) & hotKey[0]);
-  Qt::KeyboardModifiers mods = hotKey.isEmpty()
-                                   ? Qt::KeyboardModifiers(0)
-                                   : Qt::KeyboardModifiers(hotKey[0] & allMods);
+  const auto combination = hotKey[0];
+  const Qt::Key key = combination.key();
+  const Qt::KeyboardModifiers mods = combination.keyboardModifiers();
   const quint32 nativeKey = nativeKeycode(key);
   const quint32 nativeMods = nativeModifiers(mods);
   if (!actions_.contains(qMakePair(nativeKey, nativeMods)))
@@ -77,7 +69,7 @@ void GlobalAction::triggerHotKey(quint32 nativeKey, quint32 nativeMods)
 #ifdef Q_OS_LINUX
 #include <X11/Xlib.h>
 #include <xcb/xcb_event.h>
-#include <QX11Info>
+#include <QGuiApplication>
 
 namespace service
 {
@@ -101,8 +93,10 @@ static int customHandler(Display *display, XErrorEvent *event)
 
 bool GlobalAction::registerHotKey(quint32 nativeKey, quint32 nativeMods)
 {
-  Display *display = QX11Info::display();
-  Window window = QX11Info::appRootWindow();
+  auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+  SOFT_ASSERT(x11, return false);
+  Display *display = x11->display();
+  Window window = DefaultRootWindow(display);
   Bool owner = True;
   int pointer = GrabModeAsync;
   int keyboard = GrabModeAsync;
@@ -120,8 +114,10 @@ bool GlobalAction::registerHotKey(quint32 nativeKey, quint32 nativeMods)
 
 bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
 {
-  Display *display = QX11Info::display();
-  Window window = QX11Info::appRootWindow();
+  auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+  SOFT_ASSERT(x11, return false);
+  Display *display = x11->display();
+  Window window = DefaultRootWindow(display);
   error = false;
   int (*handler)(Display * display, XErrorEvent * event) =
       XSetErrorHandler(customHandler);
@@ -134,7 +130,7 @@ bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
 }
 
 bool GlobalAction::nativeEventFilter(const QByteArray &eventType, void *message,
-                                     long *result)
+                                     qintptr *result)
 {
   Q_UNUSED(eventType);
   Q_UNUSED(result);
@@ -151,10 +147,12 @@ bool GlobalAction::nativeEventFilter(const QByteArray &eventType, void *message,
 
 quint32 GlobalAction::nativeKeycode(Qt::Key key)
 {
-  Display *display = QX11Info::display();
+  auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+  SOFT_ASSERT(x11, return 0);
+  Display *display = x11->display();
   KeySym keySym = XStringToKeysym(qPrintable(QKeySequence(key).toString()));
   if (XKeysymToString(keySym) == nullptr) {
-    keySym = QChar(key).unicode();
+    keySym = QChar(static_cast<char16_t>(key)).unicode();
   }
   return XKeysymToKeycode(display, keySym);
 }
@@ -191,7 +189,7 @@ bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
 }
 
 bool GlobalAction::nativeEventFilter(const QByteArray &eventType, void *message,
-                                     long *result)
+                                     qintptr *result)
 {
   Q_UNUSED(eventType);
   Q_UNUSED(result);
@@ -408,7 +406,7 @@ bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
 }
 
 bool GlobalAction::nativeEventFilter(const QByteArray & /*eventType*/,
-                                     void * /*message*/, long * /*result*/)
+                                     void * /*message*/, qintptr * /*result*/)
 {
   return false;
 }
