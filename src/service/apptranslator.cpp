@@ -6,7 +6,7 @@
 
 namespace service
 {
-AppTranslator::AppTranslator(const QStringList &translationFiles)
+AppTranslator::AppTranslator(const QStringList& translationFiles)
   : translationFiles_(translationFiles)
 {
 }
@@ -14,8 +14,8 @@ AppTranslator::AppTranslator(const QStringList &translationFiles)
 void AppTranslator::retranslate()
 {
   auto app = QCoreApplication::instance();
-  const auto oldTranslators = app->findChildren<QTranslator *>();
-  for (const auto &old : oldTranslators) {
+  const auto oldTranslators = app->findChildren<QTranslator*>();
+  for (const auto& old : oldTranslators) {
     old->deleteLater();
   }
 
@@ -26,8 +26,8 @@ void AppTranslator::retranslate()
   const auto paths = searchPaths();
 
   auto last = new QTranslator(app);
-  for (const auto &name : files) {
-    for (const auto &path : paths) {
+  for (const auto& name : files) {
+    for (const auto& path : paths) {
       if (!last->load(locale, name, QLatin1String("_"), path))
         continue;
       app->installTranslator(last);

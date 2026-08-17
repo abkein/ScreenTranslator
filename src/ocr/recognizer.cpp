@@ -8,7 +8,7 @@
 
 #include <QThread>
 
-Recognizer::Recognizer(Manager &manager, const Settings &settings)
+Recognizer::Recognizer(Manager& manager, const Settings& settings)
   : manager_(manager)
   , settings_(settings)
   , workerThread_(new QThread(this))
@@ -27,10 +27,10 @@ Recognizer::Recognizer(Manager &manager, const Settings &settings)
   worker->moveToThread(workerThread_);
 }
 
-void Recognizer::recognize(const TaskPtr &task)
+void Recognizer::recognize(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
-  SOFT_ASSERT(task->isValid(), return );
+  SOFT_ASSERT(task, return);
+  SOFT_ASSERT(task->isValid(), return);
 
   if (task->sourceLanguage.isEmpty()) {
     task->error = tr("No source language set. Check settings");
@@ -50,11 +50,11 @@ void Recognizer::processQueue()
   emit recognizeImpl(queue_.front());
 }
 
-void Recognizer::recognized(const TaskPtr &task)
+void Recognizer::recognized(const TaskPtr& task)
 {
   manager_.recognized(task);
 
-  SOFT_ASSERT(!queue_.empty(), return );
+  SOFT_ASSERT(!queue_.empty(), return);
   if (queue_.front() == task) {
     queue_.pop_front();
   } else {
@@ -76,7 +76,7 @@ Recognizer::~Recognizer()
 
 void Recognizer::updateSettings()
 {
-  SOFT_ASSERT(!settings_.tessdataPath.isEmpty(), return );
+  SOFT_ASSERT(!settings_.tessdataPath.isEmpty(), return);
 
   queue_.clear();
   emit reset(settings_.tessdataPath);

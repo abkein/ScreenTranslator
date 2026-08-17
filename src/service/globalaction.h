@@ -10,16 +10,16 @@ namespace service
 class GlobalAction : public QAbstractNativeEventFilter
 {
 public:
-  bool nativeEventFilter(const QByteArray &eventType, void *message,
-                         qintptr *result) override;
+  bool nativeEventFilter(const QByteArray& eventType, void* message,
+                         qintptr* result) override;
 
   static void init();
-  static bool makeGlobal(QAction *action);
-  static bool removeGlobal(QAction *action);
-  static bool update(QAction *action, const QKeySequence &newShortcut);
+  static bool makeGlobal(QAction* action);
+  static bool removeGlobal(QAction* action);
+  static bool update(QAction* action, const QKeySequence& newShortcut);
 
 private:
-  static QHash<QPair<quint32, quint32>, QAction *> actions_;
+  static QHash<QPair<quint32, quint32>, QAction*> actions_;
 
   static quint32 nativeKeycode(Qt::Key key);
   static quint32 nativeModifiers(Qt::KeyboardModifiers modifiers);

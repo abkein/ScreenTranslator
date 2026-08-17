@@ -9,7 +9,7 @@
 #include <QRegularExpression>
 #include <QTextCodec>
 
-static int levenshteinDistance(const QString &source, const QString &target)
+static int levenshteinDistance(const QString& source, const QString& target)
 {
   if (source == target)
     return 0;
@@ -44,8 +44,8 @@ static int levenshteinDistance(const QString &source, const QString &target)
   return previousColumn.at(targetCount);
 }
 
-HunspellCorrector::HunspellCorrector(const LanguageId &language,
-                                     const QString &dictPath)
+HunspellCorrector::HunspellCorrector(const LanguageId& language,
+                                     const QString& dictPath)
 {
   const auto name = LanguageCodes::iso639_1(language);
   init(dictPath + QLatin1Char('/') + name);
@@ -53,7 +53,7 @@ HunspellCorrector::HunspellCorrector(const LanguageId &language,
 
 HunspellCorrector::~HunspellCorrector() = default;
 
-const QString &HunspellCorrector::error() const
+const QString& HunspellCorrector::error() const
 {
   return error_;
 }
@@ -63,9 +63,9 @@ bool HunspellCorrector::isValid() const
   return engine_.get();
 }
 
-void HunspellCorrector::init(const QString &path)
+void HunspellCorrector::init(const QString& path)
 {
-  SOFT_ASSERT(!engine_, return );
+  SOFT_ASSERT(!engine_, return);
 
   QDir dir(path);
   if (!dir.exists()) {
@@ -75,7 +75,7 @@ void HunspellCorrector::init(const QString &path)
 
   QString aff;
   QStringList dics;
-  for (const auto &file : dir.entryList(QDir::Filter::Files)) {
+  for (const auto& file : dir.entryList(QDir::Filter::Files)) {
     if (file.endsWith(".aff")) {
       aff = dir.absoluteFilePath(file);
       continue;
@@ -97,12 +97,12 @@ void HunspellCorrector::init(const QString &path)
 
   dics.pop_front();
   if (!dics.isEmpty()) {
-    for (const auto &dic : dics) engine_->add_dic(qPrintable(dic));
+    for (const auto& dic : dics) engine_->add_dic(qPrintable(dic));
     LTRACE() << "Loaded hunspell dicts" << dics;
   }
 }
 
-QString HunspellCorrector::correct(const QString &original)
+QString HunspellCorrector::correct(const QString& original)
 {
   SOFT_ASSERT(engine_, return original);
 
@@ -147,7 +147,7 @@ QString HunspellCorrector::correct(const QString &original)
   return result;
 }
 
-void HunspellCorrector::correctWord(QString &word, QTextCodec &codec) const
+void HunspellCorrector::correctWord(QString& word, QTextCodec& codec) const
 {
   if (word.isEmpty())
     return;

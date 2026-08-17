@@ -10,22 +10,22 @@ class Recognizer : public QObject
 {
   Q_OBJECT
 public:
-  Recognizer(Manager &manager, const Settings &settings);
+  Recognizer(Manager& manager, const Settings& settings);
   ~Recognizer();
 
   void updateSettings();
-  void recognize(const TaskPtr &task);
+  void recognize(const TaskPtr& task);
 
 signals:
-  void recognizeImpl(const TaskPtr &task);
-  void reset(const QString &tessdataPath);
+  void recognizeImpl(const TaskPtr& task);
+  void reset(const QString& tessdataPath);
 
 private:
-  void recognized(const TaskPtr &task);
+  void recognized(const TaskPtr& task);
   void processQueue();
 
-  Manager &manager_;
-  const Settings &settings_;
-  QThread *workerThread_;
+  Manager& manager_;
+  const Settings& settings_;
+  QThread* workerThread_;
   std::deque<TaskPtr> queue_;
 };

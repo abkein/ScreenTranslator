@@ -2,7 +2,7 @@
 #include "settings.h"
 #include "task.h"
 
-CaptureArea::CaptureArea(const QRect &rect, const Settings &settings)
+CaptureArea::CaptureArea(const QRect& rect, const Settings& settings)
   : rect_(rect)
   , doTranslation_(settings.doTranslation)
   , useHunspell_(settings.useHunspell)
@@ -12,8 +12,8 @@ CaptureArea::CaptureArea(const QRect &rect, const Settings &settings)
 {
 }
 
-TaskPtr CaptureArea::task(const QPixmap &pixmap,
-                          const QPoint &pixmapOffset) const
+TaskPtr CaptureArea::task(const QPixmap& pixmap,
+                          const QPoint& pixmapOffset) const
 {
   if (pixmap.isNull() || !isValid())
     return {};
@@ -49,12 +49,12 @@ bool CaptureArea::isValid() const
   return !(rect_.width() < 3 || rect_.height() < 3);
 }
 
-const QRect &CaptureArea::rect() const
+const QRect& CaptureArea::rect() const
 {
   return rect_;
 }
 
-void CaptureArea::setRect(const QRect &rect)
+void CaptureArea::setRect(const QRect& rect)
 {
   rect_ = rect;
 }

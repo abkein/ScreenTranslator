@@ -11,7 +11,7 @@
 #define STR2(XXX) #XXX
 #define STR(XXX) STR2(XXX)
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   QApplication a(argc, argv);
   a.setApplicationName("ScreenTranslator");

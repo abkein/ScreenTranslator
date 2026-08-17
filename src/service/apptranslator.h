@@ -7,7 +7,7 @@ namespace service
 class AppTranslator
 {
 public:
-  explicit AppTranslator(const QStringList &translationFiles);
+  explicit AppTranslator(const QStringList& translationFiles);
 
   void retranslate();
 

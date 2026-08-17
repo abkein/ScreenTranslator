@@ -2,8 +2,8 @@
 
 #include "stfwd.h"
 
-#include <QString>
 #include <QImage>
+#include <QString>
 
 #include <memory>
 

@@ -10,8 +10,8 @@
 #include <QPainter>
 #include <QScreen>
 
-Capturer::Capturer(Manager &manager, const Settings &settings,
-                   const CommonModels &models)
+Capturer::Capturer(Manager& manager, const Settings& settings,
+                   const CommonModels& models)
   : manager_(manager)
   , settings_(settings)
   , selector_(std::make_unique<CaptureAreaSelector>(*this, settings_, models,
@@ -24,7 +24,7 @@ Capturer::~Capturer() = default;
 void Capturer::capture()
 {
   updatePixmap();
-  SOFT_ASSERT(selector_, return );
+  SOFT_ASSERT(selector_, return);
   selector_->activate();
 }
 
@@ -37,7 +37,7 @@ bool Capturer::canCaptureLocked()
 void Capturer::captureLocked()
 {
   updatePixmap();
-  SOFT_ASSERT(selector_, return );
+  SOFT_ASSERT(selector_, return);
   selector_->captureLocked();
 }
 
@@ -48,7 +48,7 @@ void Capturer::updatePixmap()
   screenRects.reserve(screens.size());
   QRect rect;
 
-  for (const QScreen *screen : screens) {
+  for (const QScreen* screen : screens) {
     const auto geometry = screen->geometry();
     screenRects.push_back(geometry);
     rect |= geometry;
@@ -65,27 +65,27 @@ void Capturer::updatePixmap()
     p.drawPixmap(geometry, pixmap);
   }
 
-  SOFT_ASSERT(selector_, return );
+  SOFT_ASSERT(selector_, return);
   pixmap_ = combined;
   pixmapOffset_ = rect.topLeft();
 
-  for (auto &r : screenRects) r.translate(-rect.topLeft());
+  for (auto& r : screenRects) r.translate(-rect.topLeft());
   selector_->setScreenRects(screenRects);
 }
 
 void Capturer::repeatCapture()
 {
-  SOFT_ASSERT(selector_, return );
+  SOFT_ASSERT(selector_, return);
   selector_->activate();
 }
 
 void Capturer::updateSettings()
 {
-  SOFT_ASSERT(selector_, return );
+  SOFT_ASSERT(selector_, return);
   selector_->updateSettings();
 }
 
-void Capturer::selected(const CaptureArea &area)
+void Capturer::selected(const CaptureArea& area)
 {
   SOFT_ASSERT(selector_, return manager_.captureCanceled())
   selector_->hide();
@@ -100,7 +100,7 @@ void Capturer::selected(const CaptureArea &area)
 
 void Capturer::canceled()
 {
-  SOFT_ASSERT(selector_, return );
+  SOFT_ASSERT(selector_, return);
   selector_->hide();
   manager_.captureCanceled();
 }

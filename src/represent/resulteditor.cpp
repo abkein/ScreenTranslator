@@ -12,8 +12,8 @@
 #include <QPushButton>
 #include <QTextEdit>
 
-ResultEditor::ResultEditor(Manager &manager, const CommonModels &models,
-                           const Settings &settings, QWidget *parent)
+ResultEditor::ResultEditor(Manager& manager, const CommonModels& models,
+                           const Settings& settings, QWidget* parent)
   : QWidget(parent)
   , manager_(manager)
   , settings_(settings)
@@ -60,9 +60,9 @@ ResultEditor::ResultEditor(Manager &manager, const CommonModels &models,
   box->addWidget(translateOnly_);
 }
 
-void ResultEditor::show(const TaskPtr &task)
+void ResultEditor::show(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   task_ = std::make_shared<Task>();
   *task_ = *task;
 

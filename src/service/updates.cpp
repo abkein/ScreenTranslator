@@ -1,4 +1,4 @@
-﻿#include "updates.h"
+#include "updates.h"
 #include "debug.h"
 
 #include <QApplication>
@@ -24,7 +24,7 @@
 #define MINIZ_NO_ARCHIVE_WRITING_APIS
 #include <miniz/miniz.h>
 
-static QByteArray unpack(const QByteArray &data)
+static QByteArray unpack(const QByteArray& data)
 {
   if (data.size() <= 4 || data.left(2) != "PK") {
     LTRACE() << "Incorrect data to unpack" << LARG(data.size())
@@ -126,7 +126,7 @@ QString toString(Action action)
   return names.value(action);
 }
 
-QStringList toList(const QJsonValue &value)
+QStringList toList(const QJsonValue& value)
 {
   if (value.isString())
     return {value.toString()};
@@ -135,7 +135,7 @@ QStringList toList(const QJsonValue &value)
 
   const auto array = value.toArray();
   QStringList result;
-  for (const auto &i : array) {
+  for (const auto& i : array) {
     if (i.isString())
       result.append(i.toString());
   }
@@ -146,12 +146,12 @@ QStringList toList(const QJsonValue &value)
 
 //
 
-Model::Model(Updater &updater)
+Model::Model(Updater& updater)
   : updater_(updater)
 {
 }
 
-QString Model::parse(const QByteArray &data)
+QString Model::parse(const QByteArray& data)
 {
   QJsonParseError error;
   const auto doc = QJsonDocument::fromJson(data, &error);
@@ -180,7 +180,7 @@ QString Model::parse(const QByteArray &data)
   return {};
 }
 
-std::unique_ptr<Model::Component> Model::parse(const QJsonObject &json) const
+std::unique_ptr<Model::Component> Model::parse(const QJsonObject& json) const
 {
   auto result = std::make_unique<Component>();
 
@@ -209,10 +209,10 @@ std::unique_ptr<Model::Component> Model::parse(const QJsonObject &json) const
     const auto files = json[filesKey].toArray();
     result->files.reserve(files.size());
 
-    for (const auto &fileInfo : files) {
+    for (const auto& fileInfo : files) {
       const auto object = fileInfo.toObject();
       File file;
-      for (const auto &s : toList(object["url"])) {
+      for (const auto& s : toList(object["url"])) {
         const auto url = QUrl(s);
         if (url.isValid())
           file.urls.append(url);
@@ -238,7 +238,7 @@ std::unique_ptr<Model::Component> Model::parse(const QJsonObject &json) const
 
   result->children.reserve(json.size());
   auto index = -1;
-  for (const auto &name : json.keys()) {
+  for (const auto& name : json.keys()) {
     if (name == versionKey)
       continue;
 
@@ -253,22 +253,22 @@ std::unique_ptr<Model::Component> Model::parse(const QJsonObject &json) const
   return result;
 }
 
-void Model::updateProgress(const QUrl &url, int progress)
+void Model::updateProgress(const QUrl& url, int progress)
 {
   if (!root_ || url.isEmpty())
     return;
 
-  auto visitor = [this](Component &component, const QUrl &url, int progress,
+  auto visitor = [this](Component& component, const QUrl& url, int progress,
                         auto v) -> bool {
     if (!component.files.empty()) {
-      for (auto &file : component.files) {
+      for (auto& file : component.files) {
         if (!file.urls.contains(url))
           continue;
 
         file.progress = progress;
         component.progress = progress;
 
-        for (const auto &f : std::as_const(component.files))
+        for (const auto& f : std::as_const(component.files))
           component.progress = std::max(f.progress, component.progress);
 
         const auto index = toIndex(component, int(Column::Progress));
@@ -277,7 +277,7 @@ void Model::updateProgress(const QUrl &url, int progress)
       }
 
     } else if (!component.children.empty()) {
-      for (auto &child : component.children) {
+      for (auto& child : component.children) {
         if (v(*child, url, progress, v))
           return true;
       }
@@ -288,7 +288,7 @@ void Model::updateProgress(const QUrl &url, int progress)
   visitor(*root_, url, progress, visitor);
 }
 
-void Model::setExpansions(const QHash<QString, QString> &expansions)
+void Model::setExpansions(const QHash<QString, QString>& expansions)
 {
   expansions_ = expansions;
   updateStates();
@@ -299,10 +299,10 @@ void Model::updateStates()
   if (!root_)
     return;
 
-  auto visitor = [this](Component &component, auto v) -> void {
+  auto visitor = [this](Component& component, auto v) -> void {
     if (!component.files.empty()) {
       component.state = State::Actual;
-      for (auto &file : component.files) {
+      for (auto& file : component.files) {
         file.expandedPath = expanded(file.rawPath);
         const auto fileState = currentState(file);
         component.state = std::min(component.state, fileState);
@@ -311,14 +311,14 @@ void Model::updateStates()
       emit dataChanged(index, index, {Qt::DisplayRole});
 
     } else if (!component.children.empty()) {
-      for (auto &child : component.children) v(*child, v);
+      for (auto& child : component.children) v(*child, v);
     }
   };
 
   visitor(*root_, visitor);
 }
 
-State Model::currentState(const File &file) const
+State Model::currentState(const File& file) const
 {
   if (file.expandedPath.isEmpty() ||
       (file.md5.isEmpty() && !file.versionDate.isValid()))
@@ -347,7 +347,7 @@ State Model::currentState(const File &file) const
   return State::Actual;
 }
 
-QString Model::expanded(const QString &source) const
+QString Model::expanded(const QString& source) const
 {
   auto result = source;
 
@@ -366,8 +366,8 @@ bool Model::hasUpdates() const
   if (!root_)
     return false;
 
-  const auto visitor = [](const Component &component, auto v) -> bool {
-    for (const auto &i : component.children) {
+  const auto visitor = [](const Component& component, auto v) -> bool {
+    for (const auto& i : component.children) {
       if (i->state == State::UpdateAvailable || v(*i, v))
         return true;
     }
@@ -382,7 +382,7 @@ void Model::selectAllUpdates()
   if (!root_)
     return;
 
-  const auto visitor = [this](Component &component, auto v) -> void {
+  const auto visitor = [this](Component& component, auto v) -> void {
     if (component.checkOnly)
       return;
 
@@ -390,20 +390,20 @@ void Model::selectAllUpdates()
       updater_.applyAction(Action::Install, component.files);
 
     if (!component.children.empty()) {
-      for (auto &child : component.children) v(*child, v);
+      for (auto& child : component.children) v(*child, v);
     }
   };
 
   visitor(*root_, visitor);
 }
 
-void Model::tryAction(Action action, const QModelIndex &index)
+void Model::tryAction(Action action, const QModelIndex& index)
 {
-  const auto visitor = [this, action](Component &component, auto v) -> void {
+  const auto visitor = [this, action](Component& component, auto v) -> void {
     if (component.checkOnly)
       return;
 
-    const auto &state = component.state;
+    const auto& state = component.state;
     auto ok = (action == Action::Remove &&
                (state == State::UpdateAvailable || state == State::Actual)) ||
               (action == Action::Install && (state == State::UpdateAvailable ||
@@ -412,27 +412,27 @@ void Model::tryAction(Action action, const QModelIndex &index)
       updater_.applyAction(action, component.files);
 
     if (!component.children.empty()) {
-      for (auto &child : component.children) v(*child, v);
+      for (auto& child : component.children) v(*child, v);
     }
   };
 
   auto component = toComponent(index);
-  SOFT_ASSERT(component, return );
+  SOFT_ASSERT(component, return);
   visitor(*component, visitor);
 }
 
-Model::Component *Model::toComponent(const QModelIndex &index) const
+Model::Component* Model::toComponent(const QModelIndex& index) const
 {
-  return static_cast<Component *>(index.internalPointer());
+  return static_cast<Component*>(index.internalPointer());
 }
 
-QModelIndex Model::toIndex(const Model::Component &component, int column) const
+QModelIndex Model::toIndex(const Model::Component& component, int column) const
 {
   return createIndex(component.index, column,
-                     const_cast<Model::Component *>(&component));
+                     const_cast<Model::Component*>(&component));
 }
 
-QModelIndex Model::index(int row, int column, const QModelIndex &parent) const
+QModelIndex Model::index(int row, int column, const QModelIndex& parent) const
 {
   if (!root_)
     return {};
@@ -448,7 +448,7 @@ QModelIndex Model::index(int row, int column, const QModelIndex &parent) const
   return toIndex(*root_->children[row], column);
 }
 
-QModelIndex Model::parent(const QModelIndex &child) const
+QModelIndex Model::parent(const QModelIndex& child) const
 {
   auto ptr = toComponent(child);
   if (auto parent = ptr->parent)
@@ -456,7 +456,7 @@ QModelIndex Model::parent(const QModelIndex &child) const
   return {};
 }
 
-int Model::rowCount(const QModelIndex &parent) const
+int Model::rowCount(const QModelIndex& parent) const
 {
   if (auto ptr = toComponent(parent)) {
     return int(ptr->children.size());
@@ -464,7 +464,7 @@ int Model::rowCount(const QModelIndex &parent) const
   return root_ ? int(root_->children.size()) : 0;
 }
 
-int Model::columnCount(const QModelIndex & /*parent*/) const
+int Model::columnCount(const QModelIndex& /*parent*/) const
 {
   return int(Column::Count);
 }
@@ -486,7 +486,7 @@ QVariant Model::headerData(int section, Qt::Orientation orientation,
   return names.value(Column(section));
 }
 
-QVariant Model::data(const QModelIndex &index, int role) const
+QVariant Model::data(const QModelIndex& index, int role) const
 {
   if ((role != Qt::DisplayRole && role != Qt::EditRole) || !index.isValid())
     return {};
@@ -506,7 +506,7 @@ QVariant Model::data(const QModelIndex &index, int role) const
   return {};
 }
 
-Qt::ItemFlags Model::flags(const QModelIndex &index) const
+Qt::ItemFlags Model::flags(const QModelIndex& index) const
 {
   auto ptr = toComponent(index);
   SOFT_ASSERT(ptr, return {});
@@ -521,7 +521,7 @@ Qt::ItemFlags Model::flags(const QModelIndex &index) const
 
 //
 
-Loader::Loader(Updater &updater)
+Loader::Loader(Updater& updater)
   : updater_(updater)
   , network_(new QNetworkAccessManager(this))
 {
@@ -531,12 +531,12 @@ Loader::Loader(Updater &updater)
           this, &Loader::handleReply);
 }
 
-void Loader::download(const Urls &urls)
+void Loader::download(const Urls& urls)
 {
   start(urls, {}, {});
 }
 
-void Loader::start(const Urls &urls, const QUrl &previous, const QString &error)
+void Loader::start(const Urls& urls, const QUrl& previous, const QString& error)
 {
   if (!error.isEmpty())
     qCritical() << error;
@@ -565,11 +565,11 @@ void Loader::start(const Urls &urls, const QUrl &previous, const QString &error)
   handleReply(reply);
 }
 
-void Loader::handleReply(QNetworkReply *reply)
+void Loader::handleReply(QNetworkReply* reply)
 {
   reply->deleteLater();
 
-  SOFT_ASSERT(downloads_.contains(reply), return );
+  SOFT_ASSERT(downloads_.contains(reply), return);
   const auto leftUrls = downloads_.take(reply);
   const auto url = reply->request().url();
 
@@ -592,14 +592,14 @@ void Loader::handleReply(QNetworkReply *reply)
 
 //
 
-UpdateDelegate::UpdateDelegate(QObject *parent)
+UpdateDelegate::UpdateDelegate(QObject* parent)
   : QStyledItemDelegate(parent)
 {
 }
 
-void UpdateDelegate::paint(QPainter *painter,
-                           const QStyleOptionViewItem &option,
-                           const QModelIndex &index) const
+void UpdateDelegate::paint(QPainter* painter,
+                           const QStyleOptionViewItem& option,
+                           const QModelIndex& index) const
 {
   if (index.column() != int(Model::Column::Progress) || index.data().isNull()) {
     QStyledItemDelegate::paint(painter, option, index);
@@ -621,7 +621,7 @@ void UpdateDelegate::paint(QPainter *painter,
 
 //
 
-void Installer::checkInstall(const File &file)
+void Installer::checkInstall(const File& file)
 {
   QFileInfo installDir(QFileInfo(file.expandedPath).absolutePath());
   if (installDir.exists() && !installDir.isWritable()) {
@@ -631,7 +631,7 @@ void Installer::checkInstall(const File &file)
   }
 }
 
-void Installer::remove(const File &file)
+void Installer::remove(const File& file)
 {
   QFile f(file.expandedPath);
   if (!f.exists())
@@ -644,7 +644,7 @@ void Installer::remove(const File &file)
   }
 }
 
-void Installer::install(const File &file, const QByteArray &data)
+void Installer::install(const File& file, const QByteArray& data)
 {
   auto installDir = QFileInfo(file.expandedPath).absoluteDir();
   if (!installDir.exists() && !installDir.mkpath(".")) {
@@ -687,15 +687,15 @@ void Installer::install(const File &file, const QByteArray &data)
   }
 }
 
-const QString &Installer::error() const
+const QString& Installer::error() const
 {
   return error_;
 }
 
 //
 
-AutoChecker::AutoChecker(Updater &updater, int intervalDays,
-                         const QDateTime &lastCheck)
+AutoChecker::AutoChecker(Updater& updater, int intervalDays,
+                         const QDateTime& lastCheck)
   : updater_(updater)
   , checkIntervalDays_(intervalDays)
   , lastCheckDate_(lastCheck)
@@ -707,7 +707,7 @@ AutoChecker::AutoChecker(Updater &updater, int intervalDays,
 
 AutoChecker::~AutoChecker() = default;
 
-const QDateTime &AutoChecker::lastCheckDate() const
+const QDateTime& AutoChecker::lastCheckDate() const
 {
   return lastCheckDate_;
 }
@@ -728,7 +728,7 @@ void AutoChecker::scheduleNextCheck()
   }
 
   const auto now = QDateTime::currentDateTime();
-  const auto &last = lastCheckDate_.isValid() ? lastCheckDate_ : now;
+  const auto& last = lastCheckDate_.isValid() ? lastCheckDate_ : now;
   auto nextTime = last.addDays(checkIntervalDays_);
   if (nextTime <= now)
     nextTime = now.addSecs(5);
@@ -744,7 +744,7 @@ void AutoChecker::updateLastCheckDate()
 
 //
 
-Updater::Updater(const QVector<QUrl> &updateUrls)
+Updater::Updater(const QVector<QUrl>& updateUrls)
   : model_(std::make_unique<Model>(*this))
   , loader_(std::make_unique<Loader>(*this))
   , updateUrls_(updateUrls)
@@ -754,7 +754,7 @@ Updater::Updater(const QVector<QUrl> &updateUrls)
   std::shuffle(updateUrls_.begin(), updateUrls_.end(), generator);
 }
 
-void Updater::initView(QTreeView *view)
+void Updater::initView(QTreeView* view)
 {
   view->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -773,7 +773,7 @@ void Updater::initView(QTreeView *view)
           this, &Updater::showModelContextMenu);
 }
 
-void Updater::setExpansions(const QHash<QString, QString> &expansions)
+void Updater::setExpansions(const QHash<QString, QString>& expansions)
 {
   model_->setExpansions(expansions);
 }
@@ -783,9 +783,9 @@ void Updater::checkForUpdates()
   loader_->download(updateUrls_);
 }
 
-void Updater::applyAction(Action action, const QVector<File> &files)
+void Updater::applyAction(Action action, const QVector<File>& files)
 {
-  for (const auto &file : files) {
+  for (const auto& file : files) {
     LTRACE() << "applyAction" << int(action) << file.rawPath;
 
     if (action == Action::Remove) {
@@ -819,7 +819,7 @@ void Updater::applyAction(Action action, const QVector<File> &files)
   }
 }
 
-void Updater::downloaded(const QUrl &url, const QByteArray &data)
+void Updater::downloaded(const QUrl& url, const QByteArray& data)
 {
   LTRACE() << "downloaded" << url << LARG(data.size());
 
@@ -863,14 +863,14 @@ void Updater::downloaded(const QUrl &url, const QByteArray &data)
   emit updated();
 }
 
-void Updater::updateProgress(const QUrl &url, qint64 bytesSent,
+void Updater::updateProgress(const QUrl& url, qint64 bytesSent,
                              qint64 bytesTotal)
 {
   auto progress = bytesTotal < 1 ? 1 : int(100.0 * bytesSent / bytesTotal);
   model_->updateProgress(url, progress);
 }
 
-void Updater::downloadFailed(const QUrl &url, const QString &error)
+void Updater::downloadFailed(const QUrl& url, const QString& error)
 {
   if (updateUrls_.contains(url)) {
     emit checkedForUpdates();
@@ -895,12 +895,12 @@ QDateTime Updater::lastUpdateCheck() const
   return autoChecker_->lastCheckDate();
 }
 
-void Updater::setAutoUpdate(int intervalDays, const QDateTime &lastCheck)
+void Updater::setAutoUpdate(int intervalDays, const QDateTime& lastCheck)
 {
   autoChecker_ = std::make_unique<AutoChecker>(*this, intervalDays, lastCheck);
 }
 
-void Updater::handleModelDoubleClick(const QModelIndex &index)
+void Updater::handleModelDoubleClick(const QModelIndex& index)
 {
   if (!index.isValid())
     return;
@@ -925,33 +925,33 @@ void Updater::showModelContextMenu()
     return;
   }
 
-  auto view = qobject_cast<QAbstractItemView *>(sender());
-  SOFT_ASSERT(view, return );
+  auto view = qobject_cast<QAbstractItemView*>(sender());
+  SOFT_ASSERT(view, return);
 
   const auto selection = view->selectionModel();
-  SOFT_ASSERT(selection, return );
+  SOFT_ASSERT(selection, return);
   const auto indexes = selection->selectedRows(int(Model::Column::Name));
   if (indexes.isEmpty())
     return;
 
   const auto action = choice == install ? Action::Install : Action::Remove;
-  for (const auto &index : indexes) model_->tryAction(action, fromProxy(index));
+  for (const auto& index : indexes) model_->tryAction(action, fromProxy(index));
 }
 
-int Updater::findDownload(const QUrl &url) const
+int Updater::findDownload(const QUrl& url) const
 {
   auto it = std::find_if(downloading_.cbegin(), downloading_.cend(),
-                         [url](const File &f) { return f.urls.contains(url); });
+                         [url](const File& f) { return f.urls.contains(url); });
   if (it == downloading_.end())
     return -1;
   return std::distance(downloading_.cbegin(), it);
 }
 
-QModelIndex Updater::fromProxy(const QModelIndex &index) const
+QModelIndex Updater::fromProxy(const QModelIndex& index) const
 {
   if (!index.isValid() || index.model() == model_.get())
     return index;
-  auto proxy = qobject_cast<const QSortFilterProxyModel *>(index.model());
+  auto proxy = qobject_cast<const QSortFilterProxyModel*>(index.model());
   if (!proxy)
     return {};
   return proxy->mapToSource(index);

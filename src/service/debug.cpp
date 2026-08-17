@@ -18,10 +18,10 @@ QMutex mutex;
 QString fileName;
 int realStdout{};
 int realStderr{};
-FILE *logFile{};
+FILE* logFile{};
 
-void handler(QtMsgType type, const QMessageLogContext &context,
-             const QString &msg)
+void handler(QtMsgType type, const QMessageLogContext& context,
+             const QString& msg)
 {
   const auto typeName = QMap<QtMsgType, QByteArray>{{QtDebugMsg, " DEBUG "},
                                                     {QtInfoMsg, " INFO "},
@@ -80,7 +80,7 @@ QString traceFileName()
   return fileName;
 }
 
-bool setTraceFileName(const QString &fileName)
+bool setTraceFileName(const QString& fileName)
 {
   QMutexLocker locker(&mutex);
 

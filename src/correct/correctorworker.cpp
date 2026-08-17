@@ -7,11 +7,11 @@ CorrectorWorker::CorrectorWorker() = default;
 
 CorrectorWorker::~CorrectorWorker() = default;
 
-void CorrectorWorker::handle(const TaskPtr &task)
+void CorrectorWorker::handle(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
-  SOFT_ASSERT(task->isValid(), return );
-  SOFT_ASSERT(!hunspellDir_.isEmpty(), return );
+  SOFT_ASSERT(task, return);
+  SOFT_ASSERT(task->isValid(), return);
+  SOFT_ASSERT(!hunspellDir_.isEmpty(), return);
 
   LTRACE() << "Start hunspell correction" << task->sourceLanguage;
   auto result = task;
@@ -32,8 +32,8 @@ void CorrectorWorker::handle(const TaskPtr &task)
     LTRACE() << "Added hunspell engine" << task->sourceLanguage;
   }
 
-  auto &bundle = bundles_[task->sourceLanguage];
-  SOFT_ASSERT(bundle.hunspell->isValid(), return );
+  auto& bundle = bundles_[task->sourceLanguage];
+  SOFT_ASSERT(bundle.hunspell->isValid(), return);
 
   result->corrected = bundle.hunspell->correct(task->corrected);
 
@@ -45,7 +45,7 @@ void CorrectorWorker::handle(const TaskPtr &task)
   emit finished(result);
 }
 
-void CorrectorWorker::reset(const QString &hunspellDir)
+void CorrectorWorker::reset(const QString& hunspellDir)
 {
   if (hunspellDir_ == hunspellDir)
     return;

@@ -7,7 +7,7 @@ namespace service
 class SingleApplication
 {
 public:
-  explicit SingleApplication(const QString &baseName = {});
+  explicit SingleApplication(const QString& baseName = {});
 
   bool isValid() const;
 

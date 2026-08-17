@@ -12,8 +12,8 @@
 #include <QMouseEvent>
 #include <QScreen>
 
-ResultWidget::ResultWidget(Manager &manager, Representer &representer,
-                           const Settings &settings, QWidget *parent)
+ResultWidget::ResultWidget(Manager& manager, Representer& representer,
+                           const Settings& settings, QWidget* parent)
   : QFrame(parent)
   , representer_(representer)
   , settings_(settings)
@@ -75,12 +75,12 @@ ResultWidget::ResultWidget(Manager &manager, Representer &representer,
   updateSettings();
 }
 
-const TaskPtr &ResultWidget::task() const
+const TaskPtr& ResultWidget::task() const
 {
   return task_;
 }
 
-void ResultWidget::show(const TaskPtr &task)
+void ResultWidget::show(const TaskPtr& task)
 {
   task_ = task;
 
@@ -118,7 +118,7 @@ void ResultWidget::show(const TaskPtr &task)
   auto rect = QRect(task->capturePoint - correctionToCenterImage, size());
 
   auto screen = QApplication::screenAt(task->capturePoint);
-  SOFT_ASSERT(screen, return );
+  SOFT_ASSERT(screen, return);
   const auto screenRect = screen->geometry();
 
   // window should not exceed horizontal borders
@@ -139,8 +139,8 @@ void ResultWidget::show(const TaskPtr &task)
   if (shouldTextOnTop)
     rect.moveBottom(rect.top() + task->captured.height() + 3 * lineWidth());
 
-  auto layout = static_cast<QBoxLayout *>(this->layout());
-  SOFT_ASSERT(layout, return );
+  auto layout = static_cast<QBoxLayout*>(this->layout());
+  SOFT_ASSERT(layout, return);
   const auto isTextOnTop = layout->indexOf(recognized_) == 0;
   if (isTextOnTop != shouldTextOnTop) {
     layout->removeWidget(recognized_);
@@ -163,7 +163,7 @@ void ResultWidget::updateSettings()
   setFont(font);
 
   auto palette = this->palette();
-  const auto &backgroundColor = settings_.backgroundColor;
+  const auto& backgroundColor = settings_.backgroundColor;
   palette.setColor(QPalette::Window, backgroundColor);
   palette.setColor(QPalette::WindowText, settings_.fontColor);
   setPalette(palette);
@@ -177,7 +177,7 @@ void ResultWidget::updateSettings()
   imagePlaceholder_->setVisible(settings_.showCaptured);
 }
 
-void ResultWidget::mousePressEvent(QMouseEvent *event)
+void ResultWidget::mousePressEvent(QMouseEvent* event)
 {
   const auto button = event->button();
   if (button == Qt::RightButton) {
@@ -191,7 +191,7 @@ void ResultWidget::mousePressEvent(QMouseEvent *event)
   }
 }
 
-void ResultWidget::mouseMoveEvent(QMouseEvent *event)
+void ResultWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (!(event->buttons() & Qt::MiddleButton))
     return;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <QStringList>
+#include <memory>
 
 class QString;
 

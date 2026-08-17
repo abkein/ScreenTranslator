@@ -6,8 +6,8 @@ namespace service
 {
 namespace geometry
 {
-QPoint cornerAtPoint(const QPoint &corner, const QSize &size,
-                     const QRect &boundRect)
+QPoint cornerAtPoint(const QPoint& corner, const QSize& size,
+                     const QRect& boundRect)
 {
   auto clamped = corner;
   if (!boundRect.contains(clamped)) {

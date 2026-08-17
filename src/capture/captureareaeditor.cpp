@@ -10,8 +10,8 @@
 #include <QLabel>
 #include <QPushButton>
 
-CaptureAreaEditor::CaptureAreaEditor(const CommonModels &models,
-                                     QWidget *parent)
+CaptureAreaEditor::CaptureAreaEditor(const CommonModels& models,
+                                     QWidget* parent)
   : QWidget(parent)
   , doTranslation_(new QCheckBox(tr("Translate:"), this))
   , isLocked_(new QCheckBox(tr("Save (can capture via hotkey)"), this))
@@ -65,7 +65,7 @@ void CaptureAreaEditor::swapLanguages()
   sourceLanguage_->setCurrentText(target);
 }
 
-void CaptureAreaEditor::set(const CaptureArea &area)
+void CaptureAreaEditor::set(const CaptureArea& area)
 {
   isLocked_->setChecked(area.isLocked());
   useHunspell_->setChecked(area.useHunspell_);
@@ -74,7 +74,7 @@ void CaptureAreaEditor::set(const CaptureArea &area)
   targetLanguage_->setCurrentText(LanguageCodes::name(area.targetLanguage_));
 }
 
-void CaptureAreaEditor::apply(CaptureArea &area) const
+void CaptureAreaEditor::apply(CaptureArea& area) const
 {
   area.isLocked_ = isLocked_->isChecked();
   area.useHunspell_ = useHunspell_->isChecked();

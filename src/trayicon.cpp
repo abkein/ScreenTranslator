@@ -9,7 +9,7 @@
 
 using GlobalAction = service::GlobalAction;
 
-TrayIcon::TrayIcon(Manager &manager, const Settings &settings)
+TrayIcon::TrayIcon(Manager& manager, const Settings& settings)
   : manager_(manager)
   , settings_(settings)
   , tray_(std::make_unique<QSystemTrayIcon>())
@@ -60,8 +60,8 @@ void TrayIcon::blockActions(bool block)
   isActionsBlocked_ = block;
   updateActions();
   const auto actions =
-      QVector<QAction *>{captureAction_, repeatCaptureAction_, showLastAction_,
-                         clipboardAction_, captureLockedAction_};
+      QVector<QAction*>{captureAction_, repeatCaptureAction_, showLastAction_,
+                        clipboardAction_, captureLockedAction_};
   for (const auto i : actions) {
     if (block) {
       GlobalAction::removeGlobal(i);
@@ -92,18 +92,18 @@ void TrayIcon::setRepeatCaptureEnabled(bool isEnabled)
 void TrayIcon::updateActions()
 {
   if (isActionsBlocked_) {
-    QVector<QAction *> blockable{captureAction_, repeatCaptureAction_,
-                                 showLastAction_, settingsAction_,
-                                 captureLockedAction_};
-    for (auto &action : blockable) action->setEnabled(false);
+    QVector<QAction*> blockable{captureAction_, repeatCaptureAction_,
+                                showLastAction_, settingsAction_,
+                                captureLockedAction_};
+    for (auto& action : blockable) action->setEnabled(false);
     return;
   }
 
   captureAction_->setEnabled(true);
   settingsAction_->setEnabled(true);
 
-  QVector<QAction *> taskActions{showLastAction_, clipboardAction_};
-  for (auto &action : taskActions) action->setEnabled(gotTask_);
+  QVector<QAction*> taskActions{showLastAction_, clipboardAction_};
+  for (auto& action : taskActions) action->setEnabled(gotTask_);
 
   repeatCaptureAction_->setEnabled(canRepeatCapture_);
   captureLockedAction_->setEnabled(canCaptureLocked_);
@@ -154,19 +154,19 @@ void TrayIcon::updateIcon()
   setIcon(activeTaskCount_ > 0 ? Icon::Busy : Icon::Idle, Duration::Permanent);
 }
 
-void TrayIcon::showInformation(const QString &text)
+void TrayIcon::showInformation(const QString& text)
 {
   tray_->showMessage({}, text, QSystemTrayIcon::Information);
 }
 
-void TrayIcon::showError(const QString &text)
+void TrayIcon::showError(const QString& text)
 {
   LERROR() << text;
   setIcon(Icon::Error, Duration::Temporal);
   tray_->showMessage(tr("Error"), text, QSystemTrayIcon::Warning);
 }
 
-void TrayIcon::showFatalError(const QString &text)
+void TrayIcon::showFatalError(const QString& text)
 {
   LERROR() << text;
   isFatalError_ = true;
@@ -197,9 +197,9 @@ void TrayIcon::handleIconClick(QSystemTrayIcon::ActivationReason reason)
   }
 }
 
-QMenu *TrayIcon::contextMenu()
+QMenu* TrayIcon::contextMenu()
 {
-  QMenu *menu = new QMenu();
+  QMenu* menu = new QMenu();
   {
     captureAction_ = menu->addAction(tr("Capture"));
     connect(captureAction_, &QAction::triggered,  //
@@ -217,7 +217,7 @@ QMenu *TrayIcon::contextMenu()
   }
 
   {
-    QMenu *translateMenu = menu->addMenu(tr("Result"));
+    QMenu* translateMenu = menu->addMenu(tr("Result"));
     {
       showLastAction_ = translateMenu->addAction(tr("Show"));
       connect(showLastAction_, &QAction::triggered,  //

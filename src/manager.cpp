@@ -16,8 +16,8 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QNetworkProxy>
-#include <QThread>
 #include <QStandardPaths>
+#include <QThread>
 
 namespace
 {
@@ -37,7 +37,7 @@ Manager::Manager()
   , settings_(std::make_unique<Settings>())
   , updater_(std::make_unique<update::Updater>(QVector<QUrl>{{updatesUrl}}))
 {
-  SOFT_ASSERT(settings_, return );
+  SOFT_ASSERT(settings_, return);
 
   // updater components
   (void)QT_TRANSLATE_NOOP("QObject", "app");
@@ -72,8 +72,8 @@ Manager::Manager()
 
 Manager::~Manager()
 {
-  SOFT_ASSERT(settings_, return );
-  SOFT_ASSERT(updater_, return );
+  SOFT_ASSERT(settings_, return);
+  SOFT_ASSERT(updater_, return);
   if (updater_->lastUpdateCheck().isValid() &&
       settings_->lastUpdateCheck != updater_->lastUpdateCheck()) {
     settings_->lastUpdateCheck = updater_->lastUpdateCheck();
@@ -101,7 +101,7 @@ void Manager::warnIfOutdated()
 void Manager::updateSettings()
 {
   LTRACE() << "updateSettings";
-  SOFT_ASSERT(settings_, return );
+  SOFT_ASSERT(settings_, return);
 
   tray_->resetFatalError();
   tray_->setTaskActionsEnabled(false);
@@ -130,7 +130,7 @@ void Manager::updateSettings()
   fatalError(QObject::tr("Incorrect settings found. Go to Settings"));
 }
 
-void Manager::setupProxy(const Settings &settings)
+void Manager::setupProxy(const Settings& settings)
 {
   if (settings.proxyType == ProxyType::System) {
     QNetworkProxyFactory::setUseSystemConfiguration(true);
@@ -155,7 +155,7 @@ void Manager::setupProxy(const Settings &settings)
   QNetworkProxy::setApplicationProxy(proxy);
 }
 
-void Manager::setupUpdates(const Settings &settings)
+void Manager::setupUpdates(const Settings& settings)
 {
   updater_->setExpansions({
       {"$translators$", settings.translatorsPath},
@@ -202,9 +202,9 @@ bool Manager::setupTrace(bool isOn)
   return true;
 }
 
-void Manager::finishTask(const TaskPtr &task)
+void Manager::finishTask(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   LTRACE() << "finishTask" << task;
 
   --activeTaskCount_;
@@ -219,12 +219,12 @@ void Manager::finishTask(const TaskPtr &task)
   tray_->showSuccess();
 }
 
-void Manager::captured(const TaskPtr &task)
+void Manager::captured(const TaskPtr& task)
 {
   tray_->setCaptureLockedEnabled(capturer_->canCaptureLocked());
   tray_->blockActions(false);
 
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   LTRACE() << "captured" << task;
 
   ++activeTaskCount_;
@@ -244,9 +244,9 @@ void Manager::captureCanceled()
   tray_->blockActions(false);
 }
 
-void Manager::recognized(const TaskPtr &task)
+void Manager::recognized(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   LTRACE() << "recognized" << task;
 
   if (!task->isValid()) {
@@ -257,9 +257,9 @@ void Manager::recognized(const TaskPtr &task)
   corrector_->correct(task);
 }
 
-void Manager::corrected(const TaskPtr &task)
+void Manager::corrected(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   LTRACE() << "corrected" << task;
 
   if (!task->isValid()) {
@@ -273,9 +273,9 @@ void Manager::corrected(const TaskPtr &task)
     translated(task);
 }
 
-void Manager::translated(const TaskPtr &task)
+void Manager::translated(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   LTRACE() << "translated" << task;
 
   finishTask(task);
@@ -284,9 +284,9 @@ void Manager::translated(const TaskPtr &task)
   tray_->setTaskActionsEnabled(!task->isNull());
 }
 
-void Manager::applySettings(const Settings &settings)
+void Manager::applySettings(const Settings& settings)
 {
-  SOFT_ASSERT(settings_, return );
+  SOFT_ASSERT(settings_, return);
   const auto lastUpdate = settings_->lastUpdateCheck;  // not handled in editor
 
   *settings_ = settings;
@@ -297,7 +297,7 @@ void Manager::applySettings(const Settings &settings)
   updateSettings();
 }
 
-void Manager::fatalError(const QString &text)
+void Manager::fatalError(const QString& text)
 {
   tray_->blockActions(false);
   tray_->showFatalError(text);
@@ -305,7 +305,7 @@ void Manager::fatalError(const QString &text)
 
 void Manager::capture()
 {
-  SOFT_ASSERT(capturer_, return );
+  SOFT_ASSERT(capturer_, return);
 
   tray_->blockActions(true);
 
@@ -320,14 +320,14 @@ void Manager::capture()
 
 void Manager::repeatCapture()
 {
-  SOFT_ASSERT(capturer_, return );
+  SOFT_ASSERT(capturer_, return);
   tray_->blockActions(true);
   capturer_->repeatCapture();
 }
 
 void Manager::captureLocked()
 {
-  SOFT_ASSERT(capturer_, return );
+  SOFT_ASSERT(capturer_, return);
 
   if (representer_->isVisible()) {
     representer_->hide();
@@ -341,7 +341,7 @@ void Manager::settings()
 {
   SettingsEditor editor(*this, *updater_);
 
-  SOFT_ASSERT(settings_, return );
+  SOFT_ASSERT(settings_, return);
   editor.setSettings(*settings_);
 
   tray_->blockActions(true);
@@ -359,19 +359,19 @@ void Manager::settings()
 
 void Manager::showLast()
 {
-  SOFT_ASSERT(representer_, return );
+  SOFT_ASSERT(representer_, return);
   representer_->showLast();
 }
 
 void Manager::showTranslator()
 {
-  SOFT_ASSERT(translator_, return );
+  SOFT_ASSERT(translator_, return);
   translator_->show();
 }
 
 void Manager::copyLastToClipboard()
 {
-  SOFT_ASSERT(representer_, return );
+  SOFT_ASSERT(representer_, return);
   representer_->clipboardLast();
 }
 

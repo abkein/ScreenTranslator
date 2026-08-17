@@ -2,8 +2,7 @@
   projectRootFile = "flake.nix";
 
   settings = {
-    walk = "git"; # 'auto', 'git', 'jujutsu' or 'filesystem'
-    # formatters = ["go" "toml" "haskell"];
+    walk = "git";
     verbose = 1;
   };
 
@@ -11,6 +10,12 @@
     nixfmt = {
       enable = true;
       strict = true;
+    };
+    clang-format = {
+      enable = true;
+    };
+    clang-tidy = {
+      enable = false;
     };
   };
 
@@ -29,14 +34,9 @@
 
   settings.formatter.editorconfig-checker = {
     command = "${pkgs.lib.getExe pkgs.editorconfig-checker}";
-    options = [ ];
-    # includes = [ "*.nix" "*.md" "*.toml" ];
+    # options = [ ];
     includes = [ "*" ];
-    excludes = [
-      "*.aml"
-      "*.diff"
-      "**/Makefile"
-    ];
+    # excludes = [ ];
     priority = 1;
   };
 }

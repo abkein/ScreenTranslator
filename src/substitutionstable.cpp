@@ -13,28 +13,27 @@ namespace
 class SubstitutionDelegate : public QStyledItemDelegate
 {
 public:
-  explicit SubstitutionDelegate(QObject *parent = nullptr)
+  explicit SubstitutionDelegate(QObject* parent = nullptr)
     : QStyledItemDelegate(parent)
   {
   }
 
-  void paint(QPainter *painter, const QStyleOptionViewItem &option,
-             const QModelIndex &index) const override
+  void paint(QPainter* painter, const QStyleOptionViewItem& option,
+             const QModelIndex& index) const override
   {
     painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
   }
 
-  QWidget *createEditor(QWidget *parent,
-                        const QStyleOptionViewItem & /*option*/,
-                        const QModelIndex & /*index*/) const override
+  QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& /*option*/,
+                        const QModelIndex& /*index*/) const override
   {
     return new QLineEdit(parent);
   }
 
-  void setEditorData(QWidget *editor, const QModelIndex &index) const override
+  void setEditorData(QWidget* editor, const QModelIndex& index) const override
   {
-    auto casted = qobject_cast<QLineEdit *>(editor);
-    SOFT_ASSERT(casted, return );
+    auto casted = qobject_cast<QLineEdit*>(editor);
+    SOFT_ASSERT(casted, return);
     auto text = index.data(Qt::EditRole).toString();
 
     text.replace('\\', "\\\\");
@@ -43,11 +42,11 @@ public:
     casted->setText(text);
   }
 
-  void setModelData(QWidget *editor, QAbstractItemModel *model,
-                    const QModelIndex &index) const override
+  void setModelData(QWidget* editor, QAbstractItemModel* model,
+                    const QModelIndex& index) const override
   {
-    auto casted = qobject_cast<QLineEdit *>(editor);
-    SOFT_ASSERT(casted, return );
+    auto casted = qobject_cast<QLineEdit*>(editor);
+    SOFT_ASSERT(casted, return);
     auto text = casted->text();
 
     if (!text.isEmpty()) {
@@ -72,7 +71,7 @@ public:
 
 }  // namespace
 
-SubstitutionsTable::SubstitutionsTable(QWidget *parent)
+SubstitutionsTable::SubstitutionsTable(QWidget* parent)
   : QTableWidget(parent)
   , substitutionLanguages_(new QStringListModel(this))
 {
@@ -83,7 +82,7 @@ SubstitutionsTable::SubstitutionsTable(QWidget *parent)
           this, &SubstitutionsTable::handleItemChange);
 }
 
-void SubstitutionsTable::setSourceLanguageModel(QStringListModel *model)
+void SubstitutionsTable::setSourceLanguageModel(QStringListModel* model)
 {
   sourceLanguages_ = model;
   connect(model, &QStringListModel::modelReset,  //
@@ -93,24 +92,24 @@ void SubstitutionsTable::setSourceLanguageModel(QStringListModel *model)
           });
 }
 
-void SubstitutionsTable::setSubstitutions(const Substitutions &substitutions)
+void SubstitutionsTable::setSubstitutions(const Substitutions& substitutions)
 {
   setRowCount(0);
 
   updateModel(substitutions);
 
-  for (const auto &i : substitutions) addRow(i.first, i.second);
+  for (const auto& i : substitutions) addRow(i.first, i.second);
 
   addRow();  // for editing
   resizeColumnsToContents();
 }
 
-void SubstitutionsTable::updateModel(const Substitutions &substitutions)
+void SubstitutionsTable::updateModel(const Substitutions& substitutions)
 {
   auto strings = sourceLanguages_->stringList();
 
   if (!substitutions.empty()) {
-    for (const auto &i : substitutions) {
+    for (const auto& i : substitutions) {
       const auto name =
           LanguageCodes::name(LanguageCodes::idForTesseract(i.first));
 
@@ -139,8 +138,8 @@ Substitutions SubstitutionsTable::substitutions() const
   return result;
 }
 
-void SubstitutionsTable::addRow(const LanguageId &language,
-                                const Substitution &substutution)
+void SubstitutionsTable::addRow(const LanguageId& language,
+                                const Substitution& substutution)
 {
   QSignalBlocker blocker(this);
   auto row = rowCount();
@@ -155,8 +154,8 @@ void SubstitutionsTable::addRow(const LanguageId &language,
   } else if (rowCount() > 1) {
     const auto previousRow = rowCount() - 2;
     auto previousCombo =
-        static_cast<QComboBox *>(cellWidget(previousRow, int(E::Language)));
-    SOFT_ASSERT(previousCombo, return );
+        static_cast<QComboBox*>(cellWidget(previousRow, int(E::Language)));
+    SOFT_ASSERT(previousCombo, return);
     combo->setCurrentText(previousCombo->currentText());
   }
 
@@ -170,7 +169,7 @@ std::pair<LanguageId, Substitution> SubstitutionsTable::at(int row) const
   SOFT_ASSERT(row >= 0 && row < rowCount(), return {});
 
   using E = Column;
-  auto combo = static_cast<QComboBox *>(cellWidget(row, int(E::Language)));
+  auto combo = static_cast<QComboBox*>(cellWidget(row, int(E::Language)));
   SOFT_ASSERT(combo, return {});
 
   if (combo->currentText().isEmpty())
@@ -191,7 +190,7 @@ std::pair<LanguageId, Substitution> SubstitutionsTable::at(int row) const
   return std::make_pair(langId, sub);
 }
 
-void SubstitutionsTable::handleItemChange(QTableWidgetItem *item)
+void SubstitutionsTable::handleItemChange(QTableWidgetItem* item)
 {
   if (item->column() != int(Column::Source))
     return;

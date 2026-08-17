@@ -15,9 +15,9 @@ namespace
 {
 enum class Action { Save, Restore };
 
-void handleGeometry(QSettings *settings, QWidget *widget, Action action)
+void handleGeometry(QSettings* settings, QWidget* widget, Action action)
 {
-  SOFT_ASSERT(widget, return );
+  SOFT_ASSERT(widget, return);
   if (widget->parent())
     return;
 
@@ -31,9 +31,9 @@ void handleGeometry(QSettings *settings, QWidget *widget, Action action)
 }
 
 template <class T>
-void handleState(QSettings *settings, QWidget *widget, Action action)
+void handleState(QSettings* settings, QWidget* widget, Action action)
 {
-  auto instance = qobject_cast<T *>(widget);
+  auto instance = qobject_cast<T*>(widget);
   if (!instance)
     return;
 
@@ -44,9 +44,9 @@ void handleState(QSettings *settings, QWidget *widget, Action action)
     instance->restoreState(settings->value(name).toByteArray());
 }
 
-void handleWidget(QSettings *settings, QWidget *widget, Action action)
+void handleWidget(QSettings* settings, QWidget* widget, Action action)
 {
-  SOFT_ASSERT(widget, return );
+  SOFT_ASSERT(widget, return);
   if (!widget->objectName().isEmpty()) {
     handleGeometry(settings, widget, action);
     handleState<QSplitter>(settings, widget, action);
@@ -56,14 +56,14 @@ void handleWidget(QSettings *settings, QWidget *widget, Action action)
 
   settings->beginGroup(widget->objectName());
   const auto children =
-      widget->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly);
-  for (auto *child : children) {
+      widget->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
+  for (auto* child : children) {
     handleWidget(settings, child, action);
   }
   settings->endGroup();
 }
 
-void apply(QWidget *widget, Action action)
+void apply(QWidget* widget, Action action)
 {
   QSettings settings;
   settings.beginGroup(QStringLiteral("GUI"));
@@ -74,25 +74,25 @@ void apply(QWidget *widget, Action action)
 }
 }  // namespace
 
-WidgetState::WidgetState(QWidget *parent)
+WidgetState::WidgetState(QWidget* parent)
   : QObject(parent)
 {
   add(parent);
 }
 
-void WidgetState::add(QWidget *watched)
+void WidgetState::add(QWidget* watched)
 {
   if (!watched)
     return;
   watched->installEventFilter(this);
 }
 
-bool WidgetState::eventFilter(QObject *watched, QEvent *event)
+bool WidgetState::eventFilter(QObject* watched, QEvent* event)
 {
   if (event->type() != QEvent::Show && event->type() != QEvent::Hide)
     return QObject::eventFilter(watched, event);
 
-  auto widget = qobject_cast<QWidget *>(watched);
+  auto widget = qobject_cast<QWidget*>(watched);
   if (!widget)
     return QObject::eventFilter(watched, event);
 
@@ -104,26 +104,26 @@ bool WidgetState::eventFilter(QObject *watched, QEvent *event)
   return QObject::eventFilter(watched, event);
 }
 
-void WidgetState::addHelp(QCommandLineParser &parser)
+void WidgetState::addHelp(QCommandLineParser& parser)
 {
   parser.addOption(
       {"reset-gui", QObject::tr("Do not restore user interface "
                                 "(window size and position, etc)")});
 }
 
-void WidgetState::save(QWidget *widget)
+void WidgetState::save(QWidget* widget)
 {
-  SOFT_ASSERT(widget, return );
-  SOFT_ASSERT(!widget->objectName().isEmpty(), return );
+  SOFT_ASSERT(widget, return);
+  SOFT_ASSERT(!widget->objectName().isEmpty(), return);
   apply(widget, Action::Save);
 }
 
-void WidgetState::restore(QWidget *widget)
+void WidgetState::restore(QWidget* widget)
 {
   if (QCoreApplication::arguments().contains(QLatin1String("--reset-gui")))
     return;
-  SOFT_ASSERT(widget, return );
-  SOFT_ASSERT(!widget->objectName().isEmpty(), return );
+  SOFT_ASSERT(widget, return);
+  SOFT_ASSERT(!widget->objectName().isEmpty(), return);
   apply(widget, Action::Restore);
 }
 

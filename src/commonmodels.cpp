@@ -11,8 +11,8 @@ CommonModels::CommonModels()
 
 CommonModels::~CommonModels() = default;
 
-void CommonModels::update(const QString &tessdataPath,
-                          const QString &translatorPath)
+void CommonModels::update(const QString& tessdataPath,
+                          const QString& translatorPath)
 {
   {
     auto names = Tesseract::availableLanguageNames(tessdataPath);
@@ -35,17 +35,17 @@ void CommonModels::update(const QString &tessdataPath,
   }
 }
 
-QStringListModel *CommonModels::sourceLanguageModel() const
+QStringListModel* CommonModels::sourceLanguageModel() const
 {
   return sourceLanguageModel_.get();
 }
 
-QStringListModel *CommonModels::targetLanguageModel() const
+QStringListModel* CommonModels::targetLanguageModel() const
 {
   return targetLanguageModel_.get();
 }
 
-const QStringList &CommonModels::translators() const
+const QStringList& CommonModels::translators() const
 {
   return translators_;
 }

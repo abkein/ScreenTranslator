@@ -10,14 +10,14 @@ public:
   Manager();
   ~Manager();
 
-  void captured(const TaskPtr &task);
+  void captured(const TaskPtr& task);
   void captureCanceled();
-  void recognized(const TaskPtr &task);
-  void corrected(const TaskPtr &task);
-  void translated(const TaskPtr &task);
+  void recognized(const TaskPtr& task);
+  void corrected(const TaskPtr& task);
+  void translated(const TaskPtr& task);
 
-  void applySettings(const Settings &settings);
-  void fatalError(const QString &text);
+  void applySettings(const Settings& settings);
+  void fatalError(const QString& text);
   void capture();
   void repeatCapture();
   void captureLocked();
@@ -29,10 +29,10 @@ public:
 
 private:
   void updateSettings();
-  void setupProxy(const Settings &settings);
-  void setupUpdates(const Settings &settings);
+  void setupProxy(const Settings& settings);
+  void setupUpdates(const Settings& settings);
   bool setupTrace(bool isOn);
-  void finishTask(const TaskPtr &task);
+  void finishTask(const TaskPtr& task);
   void warnIfOutdated();
 
   std::unique_ptr<CommonModels> models_;

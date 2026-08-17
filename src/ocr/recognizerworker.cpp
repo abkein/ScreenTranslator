@@ -6,11 +6,11 @@
 RecognizeWorker::RecognizeWorker() = default;
 RecognizeWorker::~RecognizeWorker() = default;
 
-void RecognizeWorker::handle(const TaskPtr &task)
+void RecognizeWorker::handle(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
-  SOFT_ASSERT(task->isValid(), return );
-  SOFT_ASSERT(!tessdataPath_.isEmpty(), return );
+  SOFT_ASSERT(task, return);
+  SOFT_ASSERT(task->isValid(), return);
+  SOFT_ASSERT(!tessdataPath_.isEmpty(), return);
 
   LTRACE() << "Start recognize" << task->captured;
   auto result = task;
@@ -31,8 +31,8 @@ void RecognizeWorker::handle(const TaskPtr &task)
     LTRACE() << "Added OCR engine" << task->sourceLanguage;
   }
 
-  auto &engine = engines_[task->sourceLanguage];
-  SOFT_ASSERT(engine->isValid(), return );
+  auto& engine = engines_[task->sourceLanguage];
+  SOFT_ASSERT(engine->isValid(), return);
 
   result->recognized = engine->recognize(task->captured);
   if (result->recognized.isEmpty())
@@ -44,7 +44,7 @@ void RecognizeWorker::handle(const TaskPtr &task)
   emit finished(result);
 }
 
-void RecognizeWorker::reset(const QString &tessdataPath)
+void RecognizeWorker::reset(const QString& tessdataPath)
 {
   if (tessdataPath_ == tessdataPath)
     return;

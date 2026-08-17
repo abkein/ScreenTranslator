@@ -5,14 +5,14 @@
 
 namespace service
 {
-QHash<QPair<quint32, quint32>, QAction *> GlobalAction::actions_;
+QHash<QPair<quint32, quint32>, QAction*> GlobalAction::actions_;
 
 void GlobalAction::init()
 {
   qApp->installNativeEventFilter(new GlobalAction);
 }
 
-bool GlobalAction::makeGlobal(QAction *action)
+bool GlobalAction::makeGlobal(QAction* action)
 {
   QKeySequence hotKey = action->shortcut();
   if (hotKey.isEmpty())
@@ -30,7 +30,7 @@ bool GlobalAction::makeGlobal(QAction *action)
   return res;
 }
 
-bool GlobalAction::removeGlobal(QAction *action)
+bool GlobalAction::removeGlobal(QAction* action)
 {
   QKeySequence hotKey = action->shortcut();
   if (hotKey.isEmpty())
@@ -50,7 +50,7 @@ bool GlobalAction::removeGlobal(QAction *action)
   return res;
 }
 
-bool GlobalAction::update(QAction *action, const QKeySequence &newShortcut)
+bool GlobalAction::update(QAction* action, const QKeySequence& newShortcut)
 {
   if (!action->shortcut().isEmpty())
     removeGlobal(action);
@@ -60,7 +60,7 @@ bool GlobalAction::update(QAction *action, const QKeySequence &newShortcut)
 
 void GlobalAction::triggerHotKey(quint32 nativeKey, quint32 nativeMods)
 {
-  QAction *action = actions_.value(qMakePair(nativeKey, nativeMods));
+  QAction* action = actions_.value(qMakePair(nativeKey, nativeMods));
   if (action && action->isEnabled())
     action->activate(QAction::Trigger);
 }
@@ -75,7 +75,7 @@ namespace service
 {
 static bool error = false;
 
-static int customHandler(Display *display, XErrorEvent *event)
+static int customHandler(Display* display, XErrorEvent* event)
 {
   Q_UNUSED(display);
   switch (event->error_code) {
@@ -93,15 +93,15 @@ static int customHandler(Display *display, XErrorEvent *event)
 
 bool GlobalAction::registerHotKey(quint32 nativeKey, quint32 nativeMods)
 {
-  auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+  auto* x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
   SOFT_ASSERT(x11, return false);
-  Display *display = x11->display();
+  Display* display = x11->display();
   Window window = DefaultRootWindow(display);
   Bool owner = True;
   int pointer = GrabModeAsync;
   int keyboard = GrabModeAsync;
   error = false;
-  int (*handler)(Display * display, XErrorEvent * event) =
+  int (*handler)(Display* display, XErrorEvent* event) =
       XSetErrorHandler(customHandler);
   XGrabKey(display, nativeKey, nativeMods, window, owner, pointer, keyboard);
   // allow numlock
@@ -114,12 +114,12 @@ bool GlobalAction::registerHotKey(quint32 nativeKey, quint32 nativeMods)
 
 bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
 {
-  auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+  auto* x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
   SOFT_ASSERT(x11, return false);
-  Display *display = x11->display();
+  Display* display = x11->display();
   Window window = DefaultRootWindow(display);
   error = false;
-  int (*handler)(Display * display, XErrorEvent * event) =
+  int (*handler)(Display* display, XErrorEvent* event) =
       XSetErrorHandler(customHandler);
   XUngrabKey(display, nativeKey, nativeMods, window);
   // allow numlock
@@ -129,15 +129,15 @@ bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
   return !error;
 }
 
-bool GlobalAction::nativeEventFilter(const QByteArray &eventType, void *message,
-                                     qintptr *result)
+bool GlobalAction::nativeEventFilter(const QByteArray& eventType, void* message,
+                                     qintptr* result)
 {
   Q_UNUSED(eventType);
   Q_UNUSED(result);
-  xcb_generic_event_t *event = static_cast<xcb_generic_event_t *>(message);
+  xcb_generic_event_t* event = static_cast<xcb_generic_event_t*>(message);
   if (event->response_type == XCB_KEY_PRESS) {
-    xcb_key_press_event_t *keyEvent =
-        static_cast<xcb_key_press_event_t *>(message);
+    xcb_key_press_event_t* keyEvent =
+        static_cast<xcb_key_press_event_t*>(message);
     const quint32 keycode = keyEvent->detail;
     const quint32 modifiers = keyEvent->state & ~XCB_MOD_MASK_2;
     triggerHotKey(keycode, modifiers);
@@ -147,9 +147,9 @@ bool GlobalAction::nativeEventFilter(const QByteArray &eventType, void *message,
 
 quint32 GlobalAction::nativeKeycode(Qt::Key key)
 {
-  auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+  auto* x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
   SOFT_ASSERT(x11, return 0);
-  Display *display = x11->display();
+  Display* display = x11->display();
   KeySym keySym = XStringToKeysym(qPrintable(QKeySequence(key).toString()));
   if (XKeysymToString(keySym) == nullptr) {
     keySym = QChar(static_cast<char16_t>(key)).unicode();
@@ -188,12 +188,12 @@ bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
   return UnregisterHotKey(0, nativeMods ^ nativeKey);
 }
 
-bool GlobalAction::nativeEventFilter(const QByteArray &eventType, void *message,
-                                     qintptr *result)
+bool GlobalAction::nativeEventFilter(const QByteArray& eventType, void* message,
+                                     qintptr* result)
 {
   Q_UNUSED(eventType);
   Q_UNUSED(result);
-  MSG *msg = static_cast<MSG *>(message);
+  MSG* msg = static_cast<MSG*>(message);
   if (msg->message == WM_HOTKEY) {
     const quint32 keycode = HIWORD(msg->lParam);
     const quint32 modifiers = LOWORD(msg->lParam);
@@ -354,7 +354,7 @@ static QHash<QPair<quint32, quint32>, EventHotKeyRef> hotkeyRefs;
 
 struct ActionAdapter {
   static OSStatus macHandler(EventHandlerCallRef /*nextHandler*/,
-                             EventRef event, void * /*userData*/)
+                             EventRef event, void* /*userData*/)
   {
     EventHotKeyID id;
     GetEventParameter(event, kEventParamDirectObject, typeEventHotKeyID, NULL,
@@ -405,8 +405,8 @@ bool GlobalAction::unregisterHotKey(quint32 nativeKey, quint32 nativeMods)
   }
 }
 
-bool GlobalAction::nativeEventFilter(const QByteArray & /*eventType*/,
-                                     void * /*message*/, qintptr * /*result*/)
+bool GlobalAction::nativeEventFilter(const QByteArray& /*eventType*/,
+                                     void* /*message*/, qintptr* /*result*/)
 {
   return false;
 }

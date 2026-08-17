@@ -10,8 +10,8 @@
 #include <QWebEngineSettings>
 #include <QtWebChannel>
 
-WebPage::WebPage(Translator &translator, const QString &script,
-                 const QString &scriptName)
+WebPage::WebPage(Translator& translator, const QString& script,
+                 const QString& scriptName)
   : QWebEnginePage(new QWebEngineProfile)
   , translator_(translator)
   , scriptName_(scriptName)
@@ -68,11 +68,11 @@ if (typeof init === "function") init ();
   js.setInjectionPoint(QWebEngineScript::Deferred);
   js.setRunsOnSubFrames(false);
 
-  SOFT_ASSERT(profile(), return );
+  SOFT_ASSERT(profile(), return);
   profile()->scripts()->insert(js);
 }
 
-void WebPage::scheduleTranslatorScript(const QString &script)
+void WebPage::scheduleTranslatorScript(const QString& script)
 {
   QWebEngineScript js;
 
@@ -82,11 +82,11 @@ void WebPage::scheduleTranslatorScript(const QString &script)
   js.setInjectionPoint(QWebEngineScript::Deferred);
   js.setRunsOnSubFrames(false);
 
-  SOFT_ASSERT(profile(), return );
+  SOFT_ASSERT(profile(), return);
   profile()->scripts()->insert(js);
 }
 
-void WebPage::addErrorToTask(const QString &text) const
+void WebPage::addErrorToTask(const QString& text) const
 {
   if (!task_)
     return;
@@ -97,7 +97,7 @@ void WebPage::changeUserAgent()
 {
   auto userAgent = profile()->httpUserAgent().split(' ');
   userAgent.erase(std::remove_if(userAgent.begin(), userAgent.end(),
-                                 [](const QString &part) {
+                                 [](const QString& part) {
                                    return part.startsWith("QtWebEngine");
                                  }),
                   userAgent.end());
@@ -114,7 +114,7 @@ void WebPage::setTimeout(std::chrono::seconds timeout)
   timeout_ = timeout;
 }
 
-void WebPage::start(const TaskPtr &task)
+void WebPage::start(const TaskPtr& task)
 {
   const auto sourceLanguage = LanguageCodes::iso639_1(task->sourceLanguage);
   const auto targetLanguage = LanguageCodes::iso639_1(task->targetLanguage);
@@ -147,20 +147,20 @@ bool WebPage::checkBusy()
   return false;
 }
 
-void WebPage::setTranslated(const QString &text)
+void WebPage::setTranslated(const QString& text)
 {
   if (!checkBusy())
     return;
 
   isBusy_ = false;
 
-  SOFT_ASSERT(task_, return )
+  SOFT_ASSERT(task_, return)
   task_->translated = text;
   task_->usedTranslator = scriptName_;
   translator_.finish(task_);
 }
 
-void WebPage::setFailed(const QString &error)
+void WebPage::setFailed(const QString& error)
 {
   if (!checkBusy())
     return;
@@ -187,15 +187,15 @@ void WebPage::setLoadImages(bool isOn)
 
 void WebPage::javaScriptConsoleMessage(
     QWebEnginePage::JavaScriptConsoleMessageLevel /*level*/,
-    const QString &message, int lineNumber, const QString &sourceID)
+    const QString& message, int lineNumber, const QString& sourceID)
 {
   qDebug() << sourceID << ":" << lineNumber << message;
   emit log(QString("%1: %2 %3").arg(sourceID).arg(lineNumber).arg(message));
 }
 
-void WebPage::authenticateProxy(const QUrl & /*requestUrl*/,
-                                QAuthenticator *authenticator,
-                                const QString & /*proxyHost*/)
+void WebPage::authenticateProxy(const QUrl& /*requestUrl*/,
+                                QAuthenticator* authenticator,
+                                const QString& /*proxyHost*/)
 {
   const auto proxy = QNetworkProxy::applicationProxy();
   authenticator->setUser(proxy.user());

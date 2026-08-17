@@ -10,20 +10,20 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-static bool locked(const std::shared_ptr<CaptureArea> &area)
+static bool locked(const std::shared_ptr<CaptureArea>& area)
 {
   return area->isLocked();
 }
-static bool notLocked(const std::shared_ptr<CaptureArea> &area)
+static bool notLocked(const std::shared_ptr<CaptureArea>& area)
 {
   return !area->isLocked();
 }
 
-CaptureAreaSelector::CaptureAreaSelector(Capturer &capturer,
-                                         const Settings &settings,
-                                         const CommonModels &models,
-                                         const QPixmap &pixmap,
-                                         const QPoint &pixmapOffset)
+CaptureAreaSelector::CaptureAreaSelector(Capturer& capturer,
+                                         const Settings& settings,
+                                         const CommonModels& models,
+                                         const QPixmap& pixmap,
+                                         const QPoint& pixmapOffset)
   : capturer_(capturer)
   , settings_(settings)
   , pixmap_(pixmap)
@@ -71,15 +71,15 @@ bool CaptureAreaSelector::hasLocked() const
 
 void CaptureAreaSelector::captureLocked()
 {
-  SOFT_ASSERT(hasLocked(), return );
+  SOFT_ASSERT(hasLocked(), return);
   ++generation_;
-  for (auto &area : areas_) {
+  for (auto& area : areas_) {
     if (area->isLocked())
       capture(*area, generation_);
   }
 }
 
-void CaptureAreaSelector::capture(CaptureArea &area, uint generation)
+void CaptureAreaSelector::capture(CaptureArea& area, uint generation)
 {
   area.setGeneration(generation);
   capturer_.selected(area);
@@ -87,9 +87,9 @@ void CaptureAreaSelector::capture(CaptureArea &area, uint generation)
 
 void CaptureAreaSelector::captureAll()
 {
-  SOFT_ASSERT(!areas_.empty(), return );
+  SOFT_ASSERT(!areas_.empty(), return);
   ++generation_;
-  for (auto &area : areas_) capture(*area, generation_);
+  for (auto& area : areas_) capture(*area, generation_);
 }
 
 void CaptureAreaSelector::cancel()
@@ -97,7 +97,7 @@ void CaptureAreaSelector::cancel()
   capturer_.canceled();
 }
 
-void CaptureAreaSelector::updateCursorShape(const QPoint &pos)
+void CaptureAreaSelector::updateCursorShape(const QPoint& pos)
 {
   const auto set = [this](Qt::CursorShape shape) {
     const auto current = cursor().shape();
@@ -110,7 +110,7 @@ void CaptureAreaSelector::updateCursorShape(const QPoint &pos)
     return;
   }
 
-  for (const auto &area : areas_) {
+  for (const auto& area : areas_) {
     if (area->rect().contains(pos)) {
       set(Qt::CursorShape::PointingHandCursor);
       return;
@@ -120,14 +120,14 @@ void CaptureAreaSelector::updateCursorShape(const QPoint &pos)
   set(Qt::CrossCursor);
 }
 
-void CaptureAreaSelector::setScreenRects(const std::vector<QRect> &screens)
+void CaptureAreaSelector::setScreenRects(const std::vector<QRect>& screens)
 {
   auto helpRect = fontMetrics().boundingRect({}, 0, help_);
   helpRect.setSize(helpRect.size() * 1.4);
 
   helpRects_.clear();
   helpRects_.reserve(screens.size());
-  for (const auto &screen : screens) {
+  for (const auto& screen : screens) {
     auto possible = std::vector<QRect>(2, helpRect);
     possible[0].moveTopLeft(screen.topLeft());
     possible[1].moveTopRight(screen.topRight());
@@ -140,15 +140,15 @@ void CaptureAreaSelector::updateSettings()
   areas_.clear();
 }
 
-void CaptureAreaSelector::paintEvent(QPaintEvent * /*event*/)
+void CaptureAreaSelector::paintEvent(QPaintEvent* /*event*/)
 {
   QPainter painter(this);
   painter.drawPixmap(rect(), pixmap_);
 
-  for (const auto &rect : helpRects_) drawHelpRects(painter, rect);
+  for (const auto& rect : helpRects_) drawHelpRects(painter, rect);
 
   if (!areas_.empty()) {
-    for (const auto &area : areas_) drawCaptureArea(painter, *area);
+    for (const auto& area : areas_) drawCaptureArea(painter, *area);
   }
 
   if (editor_->isVisible()) {
@@ -169,11 +169,11 @@ bool CaptureAreaSelector::updateCurrentHelpRects()
   const auto cursor = mapFromGlobal(QCursor::pos());
   auto changed = false;
 
-  for (auto &screenHelp : helpRects_) {
+  for (auto& screenHelp : helpRects_) {
     if (!screenHelp.current.contains(cursor))
       continue;
 
-    for (const auto &screenPossible : screenHelp.possible) {
+    for (const auto& screenPossible : screenHelp.possible) {
       if (screenPossible.contains(cursor))
         continue;
 
@@ -186,8 +186,8 @@ bool CaptureAreaSelector::updateCurrentHelpRects()
   return changed;
 }
 
-void CaptureAreaSelector::drawHelpRects(QPainter &painter,
-                                        const HelpRect &rect) const
+void CaptureAreaSelector::drawHelpRects(QPainter& painter,
+                                        const HelpRect& rect) const
 {
   painter.setBrush(QBrush(QColor(200, 200, 200, 200)));
   painter.setPen(Qt::NoPen);
@@ -198,8 +198,8 @@ void CaptureAreaSelector::drawHelpRects(QPainter &painter,
   painter.drawText(rect.current, Qt::AlignCenter, help_);
 }
 
-void CaptureAreaSelector::drawCaptureArea(QPainter &painter,
-                                          const CaptureArea &area) const
+void CaptureAreaSelector::drawCaptureArea(QPainter& painter,
+                                          const CaptureArea& area) const
 {
   const auto areaRect = area.rect();
   const auto toolTip = area.toolTip();
@@ -221,7 +221,7 @@ void CaptureAreaSelector::drawCaptureArea(QPainter &painter,
   painter.drawText(toolTipRect, 0, toolTip);
 }
 
-void CaptureAreaSelector::showEvent(QShowEvent * /*event*/)
+void CaptureAreaSelector::showEvent(QShowEvent* /*event*/)
 {
   editor_->hide();
   startSelectPos_ = currentSelectPos_ = QPoint();
@@ -230,12 +230,12 @@ void CaptureAreaSelector::showEvent(QShowEvent * /*event*/)
   updateCursorShape(QCursor::pos());
 }
 
-void CaptureAreaSelector::hideEvent(QHideEvent * /*event*/)
+void CaptureAreaSelector::hideEvent(QHideEvent* /*event*/)
 {
   editor_->hide();
 }
 
-void CaptureAreaSelector::keyPressEvent(QKeyEvent *event)
+void CaptureAreaSelector::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Escape) {
     if (editor_ && editor_->isVisible())
@@ -257,9 +257,9 @@ void CaptureAreaSelector::keyPressEvent(QKeyEvent *event)
   }
 }
 
-void CaptureAreaSelector::mousePressEvent(QMouseEvent *event)
+void CaptureAreaSelector::mousePressEvent(QMouseEvent* event)
 {
-  SOFT_ASSERT(editor_, return );
+  SOFT_ASSERT(editor_, return);
   if (editor_->isVisible()) {
     if (editor_->geometry().contains(event->pos()))
       return;
@@ -267,7 +267,7 @@ void CaptureAreaSelector::mousePressEvent(QMouseEvent *event)
   }
 
   if (!areas_.empty()) {
-    for (auto &area : areas_) {
+    for (auto& area : areas_) {
       if (!area->rect().contains(event->pos()))
         continue;
 
@@ -284,7 +284,7 @@ void CaptureAreaSelector::mousePressEvent(QMouseEvent *event)
     startSelectPos_ = currentSelectPos_ = event->pos();
 }
 
-void CaptureAreaSelector::mouseMoveEvent(QMouseEvent *event)
+void CaptureAreaSelector::mouseMoveEvent(QMouseEvent* event)
 {
   updateCursorShape(QCursor::pos());
 
@@ -299,7 +299,7 @@ void CaptureAreaSelector::mouseMoveEvent(QMouseEvent *event)
   update();
 }
 
-void CaptureAreaSelector::mouseReleaseEvent(QMouseEvent *event)
+void CaptureAreaSelector::mouseReleaseEvent(QMouseEvent* event)
 {
   if (startSelectPos_.isNull())
     return;
@@ -331,10 +331,10 @@ void CaptureAreaSelector::mouseReleaseEvent(QMouseEvent *event)
     captureAll();
 }
 
-void CaptureAreaSelector::customize(const std::shared_ptr<CaptureArea> &area)
+void CaptureAreaSelector::customize(const std::shared_ptr<CaptureArea>& area)
 {
-  SOFT_ASSERT(editor_, return );
-  SOFT_ASSERT(area, return );
+  SOFT_ASSERT(editor_, return);
+  SOFT_ASSERT(area, return);
   editor_->set(*area);
   edited_ = area;
   editor_->show();
@@ -346,7 +346,7 @@ void CaptureAreaSelector::customize(const std::shared_ptr<CaptureArea> &area)
 
 void CaptureAreaSelector::applyEditor()
 {
-  SOFT_ASSERT(editor_, return );
+  SOFT_ASSERT(editor_, return);
   if (!editor_->isVisible() || edited_.expired())
     return;
   editor_->apply(*edited_.lock());

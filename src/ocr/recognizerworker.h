@@ -13,11 +13,11 @@ public:
   RecognizeWorker();
   ~RecognizeWorker();
 
-  void handle(const TaskPtr &task);
-  void reset(const QString &tessdataPath);
+  void handle(const TaskPtr& task);
+  void reset(const QString& tessdataPath);
 
 signals:
-  void finished(const TaskPtr &task);
+  void finished(const TaskPtr& task);
 
 private:
   void removeUnused(Generation current);

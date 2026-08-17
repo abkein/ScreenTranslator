@@ -13,8 +13,8 @@
 #include <QMouseEvent>
 #include <QScreen>
 
-Representer::Representer(Manager &manager, TrayIcon &tray,
-                         const Settings &settings, const CommonModels &models)
+Representer::Representer(Manager& manager, TrayIcon& tray,
+                         const Settings& settings, const CommonModels& models)
   : manager_(manager)
   , tray_(tray)
   , settings_(settings)
@@ -27,13 +27,13 @@ Representer::~Representer() = default;
 void Representer::showLast()
 {
   if (settings_.resultShowType == ResultMode::Tooltip) {
-    SOFT_ASSERT(lastTooltipTask_, return );
+    SOFT_ASSERT(lastTooltipTask_, return);
     showTooltip(lastTooltipTask_);
     return;
   }
 
-  SOFT_ASSERT(!widgets_.empty(), return );
-  for (auto &widget : widgets_) {
+  SOFT_ASSERT(!widgets_.empty(), return);
+  for (auto& widget : widgets_) {
     SOFT_ASSERT(widget->task(), continue);
     if (widget->task()->generation != generation_)
       continue;
@@ -45,19 +45,19 @@ void Representer::showLast()
 void Representer::clipboardLast()
 {
   if (settings_.resultShowType == ResultMode::Tooltip) {
-    SOFT_ASSERT(lastTooltipTask_, return );
+    SOFT_ASSERT(lastTooltipTask_, return);
     clipboardText(lastTooltipTask_);
     return;
   }
 
-  SOFT_ASSERT(!widgets_.empty(), return );
-  SOFT_ASSERT(widgets_.front()->task(), return );
+  SOFT_ASSERT(!widgets_.empty(), return);
+  SOFT_ASSERT(widgets_.front()->task(), return);
   clipboardText(widgets_.front()->task());
   tray_.showInformation(
       QObject::tr("The last result was copied to the clipboard."));
 }
 
-void Representer::represent(const TaskPtr &task)
+void Representer::represent(const TaskPtr& task)
 {
   if (settings_.resultShowType == ResultMode::Tooltip)
     showTooltip(task);
@@ -70,14 +70,14 @@ bool Representer::isVisible() const
   if (widgets_.empty())
     return false;
   return std::any_of(widgets_.cbegin(), widgets_.cend(),
-                     [](const auto &w) { return w->isVisible(); });
+                     [](const auto& w) { return w->isVisible(); });
 }
 
 void Representer::hide()
 {
   if (widgets_.empty())
     return;
-  for (auto &w : widgets_) w->hide();
+  for (auto& w : widgets_) w->hide();
 }
 
 void Representer::updateSettings()
@@ -85,31 +85,31 @@ void Representer::updateSettings()
   lastTooltipTask_.reset();
   if (widgets_.empty())
     return;
-  for (auto &w : widgets_) w->updateSettings();
+  for (auto& w : widgets_) w->updateSettings();
 }
 
-void Representer::clipboardText(const TaskPtr &task)
+void Representer::clipboardText(const TaskPtr& task)
 {
   if (!task)
     return;
 
-  QClipboard *clipboard = QApplication::clipboard();
+  QClipboard* clipboard = QApplication::clipboard();
   auto text = task->recognized;
   if (!task->translated.isEmpty())
     text += QLatin1String(" - ") + task->translated;
   clipboard->setText(text);
 }
 
-void Representer::clipboardImage(const TaskPtr &task)
+void Representer::clipboardImage(const TaskPtr& task)
 {
   if (!task)
     return;
 
-  QClipboard *clipboard = QApplication::clipboard();
+  QClipboard* clipboard = QApplication::clipboard();
   clipboard->setPixmap(task->captured);
 }
 
-void Representer::edit(const TaskPtr &task)
+void Representer::edit(const TaskPtr& task)
 {
   if (!editor_)
     editor_ = std::make_unique<ResultEditor>(manager_, models_, settings_);
@@ -118,34 +118,34 @@ void Representer::edit(const TaskPtr &task)
 
   const auto cursor = QCursor::pos();
   const auto screen = QApplication::screenAt(cursor);
-  SOFT_ASSERT(screen, return );
+  SOFT_ASSERT(screen, return);
   editor_->move(service::geometry::cornerAtPoint(cursor, editor_->size(),
                                                  screen->geometry()));
 }
 
-bool Representer::eventFilter(QObject * /*watched*/, QEvent *event)
+bool Representer::eventFilter(QObject* /*watched*/, QEvent* event)
 {
   if (event->type() == QEvent::WindowDeactivate) {
-    for (const auto &w : widgets_) {
+    for (const auto& w : widgets_) {
       if (w->isActiveWindow())
         return false;
     }
     hide();
   } else if (event->type() == QEvent::MouseButtonPress) {
-    const auto casted = static_cast<QMouseEvent *>(event);
+    const auto casted = static_cast<QMouseEvent*>(event);
     if (casted->button() == Qt::LeftButton)
       hide();
   } else if (event->type() == QEvent::KeyPress) {
-    const auto casted = static_cast<QKeyEvent *>(event);
+    const auto casted = static_cast<QKeyEvent*>(event);
     if (casted->key() == Qt::Key_Escape)
       hide();
   }
   return false;
 }
 
-void Representer::showTooltip(const TaskPtr &task)
+void Representer::showTooltip(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   lastTooltipTask_ = task;
 
   auto message = task->recognized;
@@ -154,15 +154,15 @@ void Representer::showTooltip(const TaskPtr &task)
   tray_.showInformation(message);
 }
 
-void Representer::showWidget(const TaskPtr &task)
+void Representer::showWidget(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
   generation_ = task->generation;
 
   auto index = 0u;
   const auto count = widgets_.size();
   for (; index < count; ++index) {
-    auto &widget = widgets_[index];
+    auto& widget = widgets_[index];
     SOFT_ASSERT(widget->task(), continue);
     if (widget->task()->generation != generation_)
       break;
@@ -174,6 +174,6 @@ void Representer::showWidget(const TaskPtr &task)
     widgets_.back()->installEventFilter(this);
   }
 
-  auto &widget = widgets_[index];
+  auto& widget = widgets_[index];
   widget->show(task);
 }

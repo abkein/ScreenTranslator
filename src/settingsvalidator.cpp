@@ -4,7 +4,7 @@
 #include <settings.h>
 
 QVector<SettingsValidator::Error> SettingsValidator::check(
-    const Settings &settings, const CommonModels &models) const
+    const Settings& settings, const CommonModels& models) const
 {
   QVector<SettingsValidator::Error> result;
 
@@ -26,7 +26,7 @@ QVector<SettingsValidator::Error> SettingsValidator::check(
   return result;
 }
 
-bool SettingsValidator::correct(Settings &settings, const CommonModels &models)
+bool SettingsValidator::correct(Settings& settings, const CommonModels& models)
 {
   auto changed = false;
 

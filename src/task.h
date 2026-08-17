@@ -35,7 +35,7 @@ using TaskPtr = std::shared_ptr<Task>;
 
 Q_DECLARE_METATYPE(TaskPtr);
 
-inline QDebug operator<<(QDebug debug, const TaskPtr &c)
+inline QDebug operator<<(QDebug debug, const TaskPtr& c)
 {
   QDebugStateSaver saver(debug);
   debug.nospace() << "Task(Gen=" << c->generation

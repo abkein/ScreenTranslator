@@ -14,17 +14,17 @@
 #include <QLineEdit>
 #include <QSplitter>
 #include <QTabWidget>
+#include <QTcpSocket>
 #include <QTextEdit>
 #include <QToolBar>
-#include <QTcpSocket>
 
 #include <unordered_set>
 
-static std::map<QString, QString> loadScripts(const QString &dir,
-                                              const QStringList &scriptNames)
+static std::map<QString, QString> loadScripts(const QString& dir,
+                                              const QStringList& scriptNames)
 {
   std::map<QString, QString> result;
-  for (const auto &name : scriptNames) {
+  for (const auto& name : scriptNames) {
     QFile f(dir + QLatin1Char('/') + name);
     if (!f.open(QFile::ReadOnly))
       continue;
@@ -35,7 +35,7 @@ static std::map<QString, QString> loadScripts(const QString &dir,
   return result;
 }
 
-Translator::Translator(Manager &manager, const Settings &settings)
+Translator::Translator(Manager& manager, const Settings& settings)
   : manager_(manager)
   , settings_(settings)
   , view_(nullptr)
@@ -100,9 +100,9 @@ Translator::Translator(Manager &manager, const Settings &settings)
 
 Translator::~Translator() = default;
 
-void Translator::translate(const TaskPtr &task)
+void Translator::translate(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
+  SOFT_ASSERT(task, return);
 
   if (task->corrected.isEmpty()) {
     LTRACE() << "Corrected text is empty. Skipping translation";
@@ -141,18 +141,18 @@ void Translator::updateSettings()
     return;
   }
 
-  for (const auto &script : loaded) createPage(script.first, script.second);
+  for (const auto& script : loaded) createPage(script.first, script.second);
 }
 
-void Translator::createPage(const QString &scriptName,
-                            const QString &scriptText)
+void Translator::createPage(const QString& scriptName,
+                            const QString& scriptText)
 {
   pages_.erase(scriptName);
   const auto pageIt = pages_.emplace(
       scriptName, std::make_unique<WebPage>(*this, scriptText, scriptName));
-  SOFT_ASSERT(pageIt.second, return );
+  SOFT_ASSERT(pageIt.second, return);
 
-  const auto &page = pageIt.first->second;
+  const auto& page = pageIt.first->second;
   page->setIgnoreSslErrors(settings_.ignoreSslErrors);
   page->setTimeout(settings_.translationTimeout);
   page->setVisible(true);
@@ -177,7 +177,7 @@ void Translator::createPage(const QString &scriptName,
               createPage(scriptName, scriptText);
           });
 
-  SOFT_ASSERT(log->document(), return )
+  SOFT_ASSERT(log->document(), return)
   log->document()->setMaximumBlockCount(1000);
   LTRACE() << "Created page" << LARG(scriptName);
 }
@@ -192,7 +192,7 @@ void Translator::showDebugView()
   debugView_->activateWindow();
 }
 
-WebPage *Translator::currentPage() const
+WebPage* Translator::currentPage() const
 {
   const auto index = tabs_->currentIndex();
   if (index == -1)
@@ -240,10 +240,10 @@ void Translator::processQueue()
     return;
 
   std::unordered_set<QString> idlePages;
-  std::unordered_set<Task *> busyTasks;
+  std::unordered_set<Task*> busyTasks;
 
   auto oldPage = view_->page();
-  for (auto &i : pages_) {
+  for (auto& i : pages_) {
     if (!i.second->checkBusy()) {
       idlePages.insert(i.first);
     } else {
@@ -260,7 +260,7 @@ void Translator::processQueue()
     return;
 
   std::vector<TaskPtr> finishedTasks;
-  for (const auto &task : queue_) {
+  for (const auto& task : queue_) {
     if (idlePages.empty())
       break;
 
@@ -274,7 +274,7 @@ void Translator::processQueue()
       continue;
     }
 
-    for (auto &translator : task->translators) {
+    for (auto& translator : task->translators) {
       if (!idlePages.count(translator))
         continue;
 
@@ -288,23 +288,23 @@ void Translator::processQueue()
   }
 
   if (!finishedTasks.empty()) {
-    for (const auto &task : finishedTasks) markTranslated(task);
+    for (const auto& task : finishedTasks) markTranslated(task);
   }
 }
 
-void Translator::markTranslated(const TaskPtr &task)
+void Translator::markTranslated(const TaskPtr& task)
 {
   manager_.translated(task);
   queue_.erase(std::remove(queue_.begin(), queue_.end(), task), queue_.end());
 }
 
-void Translator::finish(const TaskPtr &task)
+void Translator::finish(const TaskPtr& task)
 {
   markTranslated(task);
   processQueue();
 }
 
-QStringList Translator::availableTranslators(const QString &path)
+QStringList Translator::availableTranslators(const QString& path)
 {
   if (path.isEmpty())
     return {};
@@ -321,7 +321,7 @@ QStringList Translator::availableLanguageNames()
 {
   QStringList names;
 
-  for (const auto &id : LanguageCodes::allIds()) {
+  for (const auto& id : LanguageCodes::allIds()) {
     const auto iso = LanguageCodes::iso639_1(id);
     if (!iso.isEmpty())
       names.append(LanguageCodes::name(id));
@@ -330,7 +330,7 @@ QStringList Translator::availableLanguageNames()
   return names;
 }
 
-void Translator::timerEvent(QTimerEvent * /*event*/)
+void Translator::timerEvent(QTimerEvent* /*event*/)
 {
   processQueue();
 }

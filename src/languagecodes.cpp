@@ -211,10 +211,10 @@ const std::unordered_map<LanguageId, LanguageCodes::Bundle>
 #undef I
 #undef S
 
-LanguageId LanguageCodes::idForName(const QString &name)
+LanguageId LanguageCodes::idForName(const QString& name)
 {
   auto it = std::find_if(codes_.cbegin(), codes_.cend(),
-                         [name](const std::pair<LanguageId, Bundle> &i) {
+                         [name](const std::pair<LanguageId, Bundle>& i) {
                            return name == QObject::tr(i.second.name);
                          });
   if (it != codes_.cend())
@@ -222,10 +222,10 @@ LanguageId LanguageCodes::idForName(const QString &name)
   return name;
 }
 
-LanguageId LanguageCodes::idForTesseract(const QString &tesseract)
+LanguageId LanguageCodes::idForTesseract(const QString& tesseract)
 {
   auto it = std::find_if(codes_.cbegin(), codes_.cend(),
-                         [tesseract](const std::pair<LanguageId, Bundle> &i) {
+                         [tesseract](const std::pair<LanguageId, Bundle>& i) {
                            return tesseract == i.second.tesseract;
                          });
   if (it != codes_.cend())
@@ -233,19 +233,19 @@ LanguageId LanguageCodes::idForTesseract(const QString &tesseract)
   return tesseract;
 }
 
-QString LanguageCodes::iso639_1(const LanguageId &id)
+QString LanguageCodes::iso639_1(const LanguageId& id)
 {
   auto it = codes_.find(id);
   return it != codes_.cend() ? it->second.iso639_1 : id;
 }
 
-QString LanguageCodes::tesseract(const LanguageId &id)
+QString LanguageCodes::tesseract(const LanguageId& id)
 {
   auto it = codes_.find(id);
   return it != codes_.cend() ? it->second.tesseract : id;
 }
 
-QString LanguageCodes::name(const LanguageId &id)
+QString LanguageCodes::name(const LanguageId& id)
 {
   auto it = codes_.find(id);
   return it != codes_.cend() ? QObject::tr(it->second.name) : id;
@@ -255,7 +255,7 @@ std::vector<LanguageId> LanguageCodes::allIds()
 {
   std::vector<LanguageId> result;
   result.reserve(codes_.size());
-  for (const auto &code : codes_) result.push_back(code.first);
+  for (const auto& code : codes_) result.push_back(code.first);
   return result;
 }
 

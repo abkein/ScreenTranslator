@@ -9,9 +9,9 @@
 #include "widgetstate.h"
 
 #include <QColorDialog>
-#include <QStandardItemModel>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QStandardItemModel>
 
 namespace
 {
@@ -28,7 +28,7 @@ enum class Page {  // order must match ui->pagesView
 enum class PageColumn { Name, Description, Error, Count };
 }  // namespace
 
-SettingsEditor::SettingsEditor(Manager &manager, update::Updater &updater)
+SettingsEditor::SettingsEditor(Manager& manager, update::Updater& updater)
   : ui(new Ui::SettingsEditor)
   , manager_(manager)
   , updater_(updater)
@@ -91,7 +91,7 @@ SettingsEditor::SettingsEditor(Manager &manager, update::Updater &updater)
         {Page::Help, {tr("Help"), tr("")}},
     };
 
-    for (const auto &i : names) {
+    for (const auto& i : names) {
       const auto error = QString();
       pageModel_->appendRow({new QStandardItem(i.title),
                              new QStandardItem(i.description),
@@ -290,7 +290,7 @@ Settings SettingsEditor::settings() const
   return settings;
 }
 
-void SettingsEditor::setSettings(const Settings &settings)
+void SettingsEditor::setSettings(const Settings& settings)
 {
   wasPortable_ = settings.isPortable();
   ui->portable->blockSignals(true);
@@ -395,14 +395,14 @@ void SettingsEditor::updateCurrentPage()
     updater_.checkForUpdates();
 }
 
-void SettingsEditor::updateTranslators(const QStringList &translators)
+void SettingsEditor::updateTranslators(const QStringList& translators)
 {
   ui->translatorList->clear();
   if (models_.translators().isEmpty())
     return;
 
   QStringList all;
-  for (const auto &i : translators) {
+  for (const auto& i : translators) {
     if (models_.translators().contains(i))
       all.append(i);
   }
@@ -417,7 +417,7 @@ void SettingsEditor::updateTranslators(const QStringList &translators)
   }
 }
 
-void SettingsEditor::handleButtonBoxClicked(QAbstractButton *button)
+void SettingsEditor::handleButtonBoxClicked(QAbstractButton* button)
 {
   if (!button)
     return;
@@ -473,7 +473,7 @@ void SettingsEditor::updateModels()
   }
 }
 
-void SettingsEditor::pickColor(QWidget *widget)
+void SettingsEditor::pickColor(QWidget* widget)
 {
   const auto original = widget->palette().color(QPalette::Button);
   const auto color = QColorDialog::getColor(original, this);

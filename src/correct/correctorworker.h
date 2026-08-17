@@ -13,11 +13,11 @@ public:
   CorrectorWorker();
   ~CorrectorWorker();
 
-  void handle(const TaskPtr &task);
-  void reset(const QString &hunspellDir);
+  void handle(const TaskPtr& task);
+  void reset(const QString& hunspellDir);
 
 signals:
-  void finished(const TaskPtr &task);
+  void finished(const TaskPtr& task);
 
 private:
   struct Bundle {

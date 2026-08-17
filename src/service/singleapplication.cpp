@@ -5,7 +5,7 @@
 #include <QDir>
 #include <QStandardPaths>
 
-static QString fileName(const QString &baseName)
+static QString fileName(const QString& baseName)
 {
   const auto name = !baseName.isEmpty()
                         ? baseName
@@ -17,7 +17,7 @@ static QString fileName(const QString &baseName)
 
 namespace service
 {
-SingleApplication::SingleApplication(const QString &baseName)
+SingleApplication::SingleApplication(const QString& baseName)
   : lockFile_(fileName(baseName))
 {
   lockFile_.setStaleLockTime(0);

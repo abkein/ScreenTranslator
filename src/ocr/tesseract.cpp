@@ -40,28 +40,28 @@ static qint64 getFreeMemory()
 }
 #endif
 
-static Pix *convertImage(const QImage &image)
+static Pix* convertImage(const QImage& image)
 {
   QBuffer buffer;
   buffer.open(QIODevice::WriteOnly);
   image.save(&buffer, "BMP");
-  const auto &data = buffer.data();
-  return pixReadMemBmp(reinterpret_cast<const l_uint8 *>(data.constData()),
+  const auto& data = buffer.data();
+  return pixReadMemBmp(reinterpret_cast<const l_uint8*>(data.constData()),
                        data.size());
 }
 
-static QImage convertImage(Pix &image)
+static QImage convertImage(Pix& image)
 {
-  l_uint8 *buffer = nullptr;
+  l_uint8* buffer = nullptr;
   size_t len = 0;
   pixWriteMemBmp(&buffer, &len, &image);
 
   QImage result;
-  result.loadFromData(static_cast<uchar *>(buffer), int(len));
+  result.loadFromData(static_cast<uchar*>(buffer), int(len));
   return result;
 }
 
-static double getScale(Pix *source)
+static double getScale(Pix* source)
 {
   SOFT_ASSERT(source, return -1.0);
 
@@ -98,7 +98,7 @@ static double getScale(Pix *source)
 class PixGuard
 {
 public:
-  explicit PixGuard(Pix *pix = nullptr)
+  explicit PixGuard(Pix* pix = nullptr)
     : pix_(pix)
   {
   }
@@ -107,7 +107,7 @@ public:
     if (pix_)
       pixDestroy(&pix_);
   }
-  void operator=(Pix *pix)
+  void operator=(Pix* pix)
   {
     if (!pix)
       return;
@@ -115,16 +115,16 @@ public:
       pixDestroy(&pix_);
     pix_ = pix;
   }
-  operator Pix *() { return pix_; }
-  Pix *operator->() { return pix_; }
-  Pix *&get() { return pix_; }
-  Pix *take()
+  operator Pix*() { return pix_; }
+  Pix* operator->() { return pix_; }
+  Pix*& get() { return pix_; }
+  Pix* take()
   {
     auto ret = pix_;
     pix_ = nullptr;
     return ret;
   }
-  void trace(const QString &name) const
+  void trace(const QString& name) const
   {
     LTRACE() << qPrintable(name) << pix_;
 #if 0
@@ -137,12 +137,12 @@ public:
   }
 
 private:
-  Pix *pix_;
+  Pix* pix_;
 
   Q_DISABLE_COPY(PixGuard);
 };
 
-static Pix *prepareImage(const QImage &image)
+static Pix* prepareImage(const QImage& image)
 {
   auto pix = PixGuard(convertImage(image));
   SOFT_ASSERT(pix, return nullptr);
@@ -210,19 +210,19 @@ static Pix *prepareImage(const QImage &image)
   return pix.take();
 }
 
-Tesseract::Tesseract(const LanguageId &language, const QString &tessdataPath)
+Tesseract::Tesseract(const LanguageId& language, const QString& tessdataPath)
 {
-  SOFT_ASSERT(!tessdataPath.isEmpty(), return );
-  SOFT_ASSERT(!language.isEmpty(), return );
+  SOFT_ASSERT(!tessdataPath.isEmpty(), return);
+  SOFT_ASSERT(!language.isEmpty(), return);
 
   init(language, tessdataPath);
 }
 
 Tesseract::~Tesseract() = default;
 
-void Tesseract::init(const LanguageId &language, const QString &tessdataPath)
+void Tesseract::init(const LanguageId& language, const QString& tessdataPath)
 {
-  SOFT_ASSERT(!api_, return );
+  SOFT_ASSERT(!api_, return);
 
   api_ = std::make_unique<tesseract::TessBaseAPI>();
   LTRACE() << "Created Tesseract api" << api_.get();
@@ -241,12 +241,12 @@ void Tesseract::init(const LanguageId &language, const QString &tessdataPath)
   LTRACE() << "Cleared Tesseract api";
 }
 
-const QString &Tesseract::error() const
+const QString& Tesseract::error() const
 {
   return error_;
 }
 
-QStringList Tesseract::availableLanguageNames(const QString &path)
+QStringList Tesseract::availableLanguageNames(const QString& path)
 {
   if (path.isEmpty())
     return {};
@@ -258,7 +258,7 @@ QStringList Tesseract::availableLanguageNames(const QString &path)
   LanguageIds names;
 
   const auto files = dir.entryList({"*.traineddata"}, QDir::Files);
-  for (const auto &file : files) {
+  for (const auto& file : files) {
     const auto lang = file.left(file.indexOf("."));
     const auto name = LanguageCodes::name(LanguageCodes::idForTesseract(lang));
     names.append(name);
@@ -270,12 +270,12 @@ QStringList Tesseract::availableLanguageNames(const QString &path)
   return names;
 }
 
-QString Tesseract::recognize(const QPixmap &source)
+QString Tesseract::recognize(const QPixmap& source)
 {
   return recognize(source.toImage());
 }
 
-QString Tesseract::recognize(const QImage &source)
+QString Tesseract::recognize(const QImage& source)
 {
   SOFT_ASSERT(api_, return {});
   SOFT_ASSERT(!source.isNull(), return {});
@@ -295,7 +295,8 @@ QString Tesseract::recognize(const QImage &source)
   api_->Clear();
   LTRACE() << "Cleared engine";
 
-  const auto result = outText ? QString::fromUtf8(outText).trimmed() : QString();
+  const auto result =
+      outText ? QString::fromUtf8(outText).trimmed() : QString();
 
   delete[] outText;
   LTRACE() << "Cleared recognized text buffer";

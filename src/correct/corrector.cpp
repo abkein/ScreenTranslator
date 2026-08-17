@@ -8,7 +8,7 @@
 
 #include <QThread>
 
-Corrector::Corrector(Manager &manager, const Settings &settings)
+Corrector::Corrector(Manager& manager, const Settings& settings)
   : manager_(manager)
   , settings_(settings)
   , workerThread_(new QThread(this))
@@ -37,10 +37,10 @@ Corrector::~Corrector()
   }
 }
 
-void Corrector::correct(const TaskPtr &task)
+void Corrector::correct(const TaskPtr& task)
 {
-  SOFT_ASSERT(task, return );
-  SOFT_ASSERT(task->isValid(), return );
+  SOFT_ASSERT(task, return);
+  SOFT_ASSERT(task->isValid(), return);
 
   queue_.push_back(task);
 
@@ -78,11 +78,11 @@ void Corrector::updateSettings()
   emit resetAuto(settings_.hunspellPath);
 }
 
-void Corrector::finishCorrection(const TaskPtr &task)
+void Corrector::finishCorrection(const TaskPtr& task)
 {
   manager_.corrected(task);
 
-  SOFT_ASSERT(!queue_.empty(), return );
+  SOFT_ASSERT(!queue_.empty(), return);
   if (queue_.front() == task) {
     queue_.pop_front();
   } else {
@@ -92,8 +92,8 @@ void Corrector::finishCorrection(const TaskPtr &task)
   processQueue();
 }
 
-QString Corrector::substituteUser(const QString &source,
-                                  const LanguageId &language) const
+QString Corrector::substituteUser(const QString& source,
+                                  const LanguageId& language) const
 {
   auto result = source;
 
@@ -119,9 +119,9 @@ QString Corrector::substituteUser(const QString &source,
     auto bestMatch = ranges.front().first;
     auto bestMatchLen = 0;
 
-    for (const auto &range : ranges) {
+    for (const auto& range : ranges) {
       for (auto it = range.first; it != range.second; ++it) {
-        const auto &sub = it->second;
+        const auto& sub = it->second;
         if (!result.contains(sub.source))
           continue;
         const auto len = sub.source.length();

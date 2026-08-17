@@ -4,7 +4,7 @@
 
 namespace service
 {
-KeySequenceEdit::KeySequenceEdit(QWidget *parent)
+KeySequenceEdit::KeySequenceEdit(QWidget* parent)
   : QLineEdit(parent)
 {
   setPlaceholderText(tr("Press shortcut"));
@@ -13,17 +13,17 @@ KeySequenceEdit::KeySequenceEdit(QWidget *parent)
   setAttribute(Qt::WA_InputMethodEnabled, false);
 }
 
-const QKeySequence &KeySequenceEdit::keySequence() const
+const QKeySequence& KeySequenceEdit::keySequence() const
 {
   return current_;
 }
 
-void KeySequenceEdit::setKeySequence(const QKeySequence &newKeySequence)
+void KeySequenceEdit::setKeySequence(const QKeySequence& newKeySequence)
 {
   setKeySequence(newKeySequence, true);
 }
 
-void KeySequenceEdit::setKeySequence(const QKeySequence &current,
+void KeySequenceEdit::setKeySequence(const QKeySequence& current,
                                      bool updateFallback)
 {
   current_ = current;
@@ -32,7 +32,7 @@ void KeySequenceEdit::setKeySequence(const QKeySequence &current,
   setText(current_.toString(QKeySequence::NativeText));
 }
 
-bool KeySequenceEdit::event(QEvent *e)
+bool KeySequenceEdit::event(QEvent* e)
 {
   switch (e->type()) {
     case QEvent::Shortcut: return true;
@@ -43,7 +43,7 @@ bool KeySequenceEdit::event(QEvent *e)
   return QWidget::event(e);
 }
 
-void KeySequenceEdit::keyPressEvent(QKeyEvent *event)
+void KeySequenceEdit::keyPressEvent(QKeyEvent* event)
 {
   const auto key = event->key();
   if (key == Qt::Key_Control || key == Qt::Key_Meta || key == Qt::Key_Alt ||
@@ -63,8 +63,8 @@ void KeySequenceEdit::keyPressEvent(QKeyEvent *event)
     return;
   }
 
-  QKeySequence seq(QKeyCombination(event->modifiers(),
-                                   static_cast<Qt::Key>(event->key())));
+  QKeySequence seq(
+      QKeyCombination(event->modifiers(), static_cast<Qt::Key>(event->key())));
   setKeySequence(seq, false);
   event->accept();
 }
