@@ -9,3 +9,5 @@ distr/content/
 
 *.tar.gz
 __pycache__
+
+result

@@ -105,6 +105,29 @@ ctest --test-dir build-legacy --output-on-failure
 The resulting compatibility executable is `screen-translator-legacy`; it is a
 development target and is not installed or released.
 
+### Nix
+
+The flake follows the `nixpkgs` input from the local system flake and provides
+the application, an app entry, checks, an overlay, and a development shell:
+
+```sh
+nix build
+nix run
+nix flake check
+nix develop
+```
+
+The default Nix package includes English Tesseract data. The standalone
+[`package.nix`](package.nix) expression accepts `tesseractLanguages`, so Nix
+consumers can select additional models without bundling them into the
+application itself:
+
+```nix
+pkgs.callPackage ./package.nix {
+  tesseractLanguages = [ "eng" "deu" "rus" ];
+}
+```
+
 ## Current limitations
 
 - Capture is one fresh rectangular region at a time.
