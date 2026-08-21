@@ -36,7 +36,7 @@ jobs:
         with:
           version: ${{ env.QT_VERSION }}
           arch: linux_gcc_64
-          modules: qt5compat qtdeclarative qtpositioning qtwayland qtwebchannel qtwebengine
+          modules: qtwebchannel qtwebengine
           cache: true
 
       - name: Configure
@@ -44,7 +44,6 @@ jobs:
           cmake -S . -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_INSTALL_PREFIX=/usr
-          -DSCREEN_TRANSLATOR_BUILD_LEGACY=ON
 
       - name: Build
         run: cmake --build build --parallel 2
